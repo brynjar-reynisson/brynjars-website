@@ -12,13 +12,15 @@ app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173' }))
 app.get('/api/last-read', (_req, res) => {
   execFile('python', ['last_read.py', '--json'], { cwd: LAST_READ_DIR }, (error, stdout) => {
     if (error) {
+      console.error('Python script error:', error)
       res.status(500).json({ error: 'Failed to fetch reading data' })
       return
     }
     try {
       const data = JSON.parse(stdout)
       res.json(data)
-    } catch {
+    } catch (e) {
+      console.error('JSON parse error:', e)
       res.status(500).json({ error: 'Failed to fetch reading data' })
     }
   })

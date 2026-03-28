@@ -2,11 +2,20 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 vi.mock('child_process')
 
-import { execFile } from 'child_process'
+import { execFile, type ExecFileException } from 'child_process'
 import request from 'supertest'
 import { app } from '../index'
 
 const mockedExecFile = vi.mocked(execFile)
+
+type ExecFileCallback = (err: ExecFileException | null, stdout: string, stderr: string) => void
+
+function mockExecFile(err: ExecFileException | null, stdout: string): void {
+  mockedExecFile.mockImplementation((_f, _a, _o, cb) => {
+    (cb as ExecFileCallback)(err, stdout, '')
+    return undefined as any
+  })
+}
 
 beforeEach(() => {
   mockedExecFile.mockReset()
@@ -23,10 +32,7 @@ const MOCK_DATA = [
 
 describe('GET /api/last-read', () => {
   it('returns parsed JSON from the python script', async () => {
-    mockedExecFile.mockImplementation((_f: any, _a: any, _o: any, cb: any) => {
-      cb(null, JSON.stringify(MOCK_DATA), '')
-      return undefined as any
-    })
+    mockExecFile(null, JSON.stringify(MOCK_DATA))
 
     const res = await request(app).get('/api/last-read')
     expect(res.status).toBe(200)
@@ -34,10 +40,7 @@ describe('GET /api/last-read', () => {
   })
 
   it('returns 500 when the script exits with an error', async () => {
-    mockedExecFile.mockImplementation((_f: any, _a: any, _o: any, cb: any) => {
-      cb(new Error('script failed'), '', '')
-      return undefined as any
-    })
+    mockExecFile(new Error('script failed') as ExecFileException, '')
 
     const res = await request(app).get('/api/last-read')
     expect(res.status).toBe(500)
@@ -45,10 +48,7 @@ describe('GET /api/last-read', () => {
   })
 
   it('returns 500 when stdout is not valid JSON', async () => {
-    mockedExecFile.mockImplementation((_f: any, _a: any, _o: any, cb: any) => {
-      cb(null, 'not valid json', '')
-      return undefined as any
-    })
+    mockExecFile(null, 'not valid json')
 
     const res = await request(app).get('/api/last-read')
     expect(res.status).toBe(500)
