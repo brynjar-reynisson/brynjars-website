@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # Visual brainstorming sessions
 .superpowers/
+
+# Git worktrees
+.worktrees/
