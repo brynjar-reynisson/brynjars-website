@@ -13,7 +13,7 @@ describe('NavCard', () => {
     expect(screen.getByText('VST Plugins')).toBeInTheDocument()
   })
 
-  it('renders as a link with the given href', () => {
+  it('renders as a link with the given to path', () => {
     render(<MemoryRouter><NavCard icon="🎛" title="VST Plugins" to="/vst" /></MemoryRouter>)
     expect(screen.getByRole('link')).toHaveAttribute('href', '/vst')
   })
