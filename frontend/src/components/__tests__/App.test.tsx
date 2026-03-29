@@ -5,7 +5,7 @@ import App from '../../App'
 describe('App', () => {
   it('renders the page title', () => {
     render(<MemoryRouter><App /></MemoryRouter>)
-    expect(screen.getByRole('heading', { name: "Brynjar's stuff" })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: "Brynjar's Online Antics" })).toBeInTheDocument()
   })
 
   it('renders the VST Plugins card', () => {

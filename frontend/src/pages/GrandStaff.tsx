@@ -5,7 +5,7 @@ export default function GrandStaff() {
     <div className="min-h-screen bg-white px-6 py-12 max-w-2xl mx-auto">
       <h1 className="text-4xl font-bold text-gray-900 mb-1">
         <Link to="/" className="text-gray-900 no-underline hover:underline">
-          Brynjar's stuff
+          Brynjar's Online Antics
         </Link>
       </h1>
       <p className="text-sm text-gray-400 mb-10">

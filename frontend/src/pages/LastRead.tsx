@@ -20,7 +20,7 @@ export default function LastRead() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-10 px-4">
       <Link to="/" className="text-gray-900 no-underline hover:underline">
-        <h1 className="text-4xl font-bold text-gray-900">Brynjar's stuff</h1>
+        <h1 className="text-4xl font-bold text-gray-900">Brynjar's Online Antics</h1>
       </Link>
       {error && <p className="text-gray-500">Could not load reading data.</p>}
       {!error && entries === null && <p className="text-gray-500">Loading...</p>}

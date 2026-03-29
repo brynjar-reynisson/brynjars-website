@@ -30,7 +30,7 @@ describe('LastRead', () => {
     } as Response)
 
     render(<MemoryRouter><LastRead /></MemoryRouter>)
-    const heading = screen.getByRole('heading', { name: "Brynjar's stuff" })
+    const heading = screen.getByRole('heading', { name: "Brynjar's Online Antics" })
     expect(heading).toBeInTheDocument()
     expect(heading.closest('a')).toHaveAttribute('href', '/')
   })

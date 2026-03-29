@@ -11,7 +11,7 @@ export default function VstPlugins() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-10 px-4">
       <h1 className="text-4xl font-bold text-gray-900">
         <Link to="/" className="text-gray-900 no-underline hover:underline">
-          Brynjar's stuff
+          Brynjar's Online Antics
         </Link>
       </h1>
       <div className="flex flex-col md:flex-row gap-6">
