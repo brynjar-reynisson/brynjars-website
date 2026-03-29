@@ -53,6 +53,17 @@ export default function GrandStaff() {
         </a>
       </div>
 
+      <p className="text-gray-700 mb-4">The following video of an older plugin version, shows key signature automation with a wide variety of chords being played.</p>
+      <div className="mb-8 aspect-video">
+        <iframe
+          className="w-full h-full rounded border border-gray-200"
+          src="https://www.youtube.com/embed/bGbAEzYub4s"
+          title="Grand Staff MIDI Visualizer demonstration"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+
       <h3 className="text-base font-semibold text-gray-900 mb-3">Credits</h3>
       <ul className="text-gray-700 space-y-1 mb-8 text-sm">
         <li><span className="text-gray-500">Concept, graphics &amp; chord list:</span> Diego Merino</li>
