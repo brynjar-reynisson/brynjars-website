@@ -11,7 +11,7 @@ const ALLOWED_ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,https
 app.use(cors({ origin: ALLOWED_ORIGINS }))
 
 app.get('/api/last-read', (_req, res) => {
-  execFile('python', ['last_read.py', '--json'], { cwd: LAST_READ_DIR }, (error, stdout) => {
+  execFile('python', ['last_read.py', '--json'], { cwd: LAST_READ_DIR, encoding: 'utf8' }, (error, stdout) => {
     if (error) {
       console.error('Python script error:', error)
       res.status(500).json({ error: 'Failed to fetch reading data' })
