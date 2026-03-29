@@ -5,7 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',
-    allowedHosts: ['breynisson.org']
+    allowedHosts: ['breynisson.org'],
+    proxy: {
+      '/api': 'http://localhost:3001',
+    },
   },
   test: {
     environment: 'jsdom',

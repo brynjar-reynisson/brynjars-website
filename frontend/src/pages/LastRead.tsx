@@ -8,7 +8,7 @@ export default function LastRead() {
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/last-read')
+    fetch('/api/last-read')
       .then((res) => {
         if (!res.ok) throw new Error('Failed')
         return res.json()
