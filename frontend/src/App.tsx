@@ -3,6 +3,7 @@ import NavCard from './components/NavCard'
 import LastRead from './pages/LastRead'
 import VstPlugins from './pages/VstPlugins'
 import GrandStaff from './pages/GrandStaff'
+import CircleOfFifths from './pages/CircleOfFifths'
 
 const NAV_ITEMS = [
   { icon: '🎛', title: 'VST Plugins', to: '/vst-plugins' },
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/last-read" element={<LastRead />} />
       <Route path="/vst-plugins" element={<VstPlugins />} />
       <Route path="/vst-plugins/grand-staff" element={<GrandStaff />} />
+      <Route path="/vst-plugins/circle-of-fifths" element={<CircleOfFifths />} />
     </Routes>
   )
 }

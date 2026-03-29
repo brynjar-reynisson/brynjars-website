@@ -3,7 +3,7 @@ import PluginCard from '../components/PluginCard'
 
 const PLUGINS = [
   { title: 'Grand Staff MIDI Visualizer', screenshot: '/grandstaff.png', to: '/vst-plugins/grand-staff' },
-  { title: 'Interactive Circle of Fifths', screenshot: '/circle5ths.png', to: '#' },
+  { title: 'Interactive Circle of Fifths', screenshot: '/circle5ths.png', to: '/vst-plugins/circle-of-fifths' },
 ]
 
 export default function VstPlugins() {
