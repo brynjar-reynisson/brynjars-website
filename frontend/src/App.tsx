@@ -4,6 +4,7 @@ import LastRead from './pages/LastRead'
 
 const NAV_ITEMS = [
   { icon: '🎛', title: 'VST Plugins', to: '#' },
+  { icon: '🔍', title: 'DigitalMe', to: 'https://digitalme.breynisson.org/' },
   { icon: '📚', title: 'Last Read', to: '/last-read' },
   { icon: '👤', title: 'About Me', to: '#' },
 ]
