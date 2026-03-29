@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import NavCard from './components/NavCard'
+import LastRead from './pages/LastRead'
 
 const NAV_ITEMS = [
   { icon: '🎛', title: 'VST Plugins', to: '#' },
@@ -24,6 +25,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/last-read" element={<LastRead />} />
     </Routes>
   )
 }
