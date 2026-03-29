@@ -44,7 +44,7 @@ export default function GrandStaff() {
       <div className="border border-gray-200 rounded-lg p-5 mb-8">
         <p className="text-sm text-gray-500 mb-1">Windows 64-bit · Open source · Free</p>
         <a
-          href="https://github.com/breynisson"
+          href="https://github.com/brynjar-reynisson/GrandStaffMIDIVisualizer/releases/download/v1.0/GrandStaffMIDIVisualizer.zip"
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm font-semibold text-gray-900 hover:underline"
