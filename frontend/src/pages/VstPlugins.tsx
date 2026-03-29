@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 import PluginCard from '../components/PluginCard'
 
 const PLUGINS = [
-  { title: 'Grand Staff MIDI Visualizer', screenshot: '/grandstaff.png' },
-  { title: 'Interactive Circle of Fifths', screenshot: '/circle5ths.png' },
+  { title: 'Grand Staff MIDI Visualizer', screenshot: '/grandstaff.png', to: '/vst-plugins/grand-staff' },
+  { title: 'Interactive Circle of Fifths', screenshot: '/circle5ths.png', to: '#' },
 ]
 
 export default function VstPlugins() {
@@ -16,7 +16,7 @@ export default function VstPlugins() {
       </h1>
       <div className="flex flex-col md:flex-row gap-6">
         {PLUGINS.map((plugin) => (
-          <PluginCard key={plugin.title} title={plugin.title} screenshot={plugin.screenshot} />
+          <PluginCard key={plugin.title} title={plugin.title} screenshot={plugin.screenshot} to={plugin.to} />
         ))}
       </div>
     </div>

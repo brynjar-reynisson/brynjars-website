@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import NavCard from './components/NavCard'
 import LastRead from './pages/LastRead'
 import VstPlugins from './pages/VstPlugins'
+import GrandStaff from './pages/GrandStaff'
 
 const NAV_ITEMS = [
   { icon: '🎛', title: 'VST Plugins', to: '/vst-plugins' },
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/last-read" element={<LastRead />} />
       <Route path="/vst-plugins" element={<VstPlugins />} />
+      <Route path="/vst-plugins/grand-staff" element={<GrandStaff />} />
     </Routes>
   )
 }
