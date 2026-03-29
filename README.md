@@ -1,12 +1,58 @@
 # brynjars-website
 
+Personal website for Brynjars, live at [breynisson.org](https://breynisson.org).
 
+## What's on the site
 
-This will become a personal website.
+- **VST Plugins** — links to VST plugins made by Brynjars (placeholder)
+- **DigitalMe** — personal search engine at [digitalme.breynisson.org](https://digitalme.breynisson.org/)
+- **Last Read** — shows what each boy last read for school, pulled from a Python script
+- **About Me** — placeholder
 
-It will have React frontend and Nodejs backend, both will use Typescript.
+## Stack
 
-It will have links to VST plugins I made.
+- **Frontend:** React + TypeScript + Vite + Tailwind CSS v4
+- **Backend:** Node.js + TypeScript + Express (port 3001)
+- **Routing:** React Router v7
+- **Hosting:** Cloudflare Tunnel → Vite dev server on port 5173
 
-It will have a link to make the backend call a python script that track's what was last read for school by my boys.
+## Running locally
 
+### Prerequisites
+
+- Node.js
+- Python (with `last_read.py` in `C:\Users\Lenovo\misc_projects\last-read`)
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Runs at http://localhost:5173.
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+Runs at http://localhost:3001. The frontend proxies `/api/*` to the backend, so both must be running for Last Read to work.
+
+### Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `LAST_READ_DIR` | `C:\Users\Lenovo\misc_projects\last-read` | Directory containing `last_read.py` |
+| `PORT` | `3001` | Backend port |
+
+### Tests
+
+```bash
+cd frontend && npm test
+cd backend && npm test
+```
