@@ -1,9 +1,10 @@
 import { Routes, Route } from 'react-router-dom'
 import NavCard from './components/NavCard'
 import LastRead from './pages/LastRead'
+import VstPlugins from './pages/VstPlugins'
 
 const NAV_ITEMS = [
-  { icon: '🎛', title: 'VST Plugins', to: '#' },
+  { icon: '🎛', title: 'VST Plugins', to: '/vst-plugins' },
   { icon: '🔍', title: 'DigitalMe', to: 'https://digitalme.breynisson.org/' },
   { icon: '📚', title: 'Last Read', to: '/last-read' },
   { icon: '👤', title: 'About Me', to: '#' },
@@ -27,6 +28,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/last-read" element={<LastRead />} />
+      <Route path="/vst-plugins" element={<VstPlugins />} />
     </Routes>
   )
 }
