@@ -15,7 +15,7 @@ export default function CircleOfFifths() {
       </p>
 
       <img
-        src="/circle5ths.png"
+        src="/circle5ths.gif"
         alt="Interactive Circle of Fifths"
         className="w-full rounded border border-gray-200 mb-8"
       />
