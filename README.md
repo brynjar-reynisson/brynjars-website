@@ -1,13 +1,13 @@
 # brynjars-website
 
-Personal website for Brynjars, live at [breynisson.org](https://breynisson.org).
+Brynjar's Online Antics — personal website, live at [breynisson.org](https://breynisson.org).
 
 ## What's on the site
 
-- **VST Plugins** — links to VST plugins made by Brynjars (placeholder)
+- **VST Plugins** — pages for Grand Staff MIDI Visualizer and Interactive Circle of Fifths, with descriptions, screenshots, and download links
 - **DigitalMe** — personal search engine at [digitalme.breynisson.org](https://digitalme.breynisson.org/)
 - **Last Read** — shows what each boy last read for school, pulled from a Python script
-- **About Me** — placeholder
+- **About Me** — bio, work experience, education, and links
 
 ## Stack
 
