@@ -8,7 +8,7 @@ import About from './pages/About'
 import OllamaChat from './pages/OllamaChat'
 
 const NAV_ITEMS = [
-  { icon: '💬', title: 'Ollama Chat', to: '/ollama-chat' },
+  { icon: '🤖', title: 'Ollama Chat', to: '/ollama-chat' },
   { icon: '🎛', title: 'VST Plugins', to: '/vst-plugins' },
   { icon: '🔍', title: 'DigitalMe', to: 'https://digitalme.breynisson.org/' },
   { icon: '📚', title: 'Last Read', to: '/last-read' },
