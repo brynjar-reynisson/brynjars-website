@@ -12,28 +12,23 @@ vi.mock('ollama', () => {
     __mockChat: mockChat,
   }
 })
-vi.mock('child_process')
 
-import { execFile, type ExecFileException } from 'child_process'
+vi.mock('../lastReadCache', () => ({
+  getCache: vi.fn(),
+  startPolling: vi.fn(),
+}))
+
 import * as ollamaModule from 'ollama'
+import { getCache } from '../lastReadCache'
 import request from 'supertest'
 import { app } from '../index'
 
-const mockedExecFile = vi.mocked(execFile)
 const mockChat = (ollamaModule as any).__mockChat
-
-type ExecFileCallback = (err: ExecFileException | null, stdout: string, stderr: string) => void
-
-function mockExecFile(err: ExecFileException | null, stdout: string): void {
-  mockedExecFile.mockImplementation((_f, _a, _o, cb) => {
-    (cb as ExecFileCallback)(err, stdout, '')
-    return undefined as any
-  })
-}
+const mockedGetCache = vi.mocked(getCache)
 
 beforeEach(() => {
-  mockedExecFile.mockReset()
   mockChat.mockReset()
+  mockedGetCache.mockReset()
 })
 
 const MOCK_DATA = [
@@ -46,25 +41,18 @@ const MOCK_DATA = [
 ]
 
 describe('GET /api/last-read', () => {
-  it('returns parsed JSON from the python script', async () => {
-    mockExecFile(null, JSON.stringify(MOCK_DATA))
+  it('returns 503 with pending: true when cache is null', async () => {
+    mockedGetCache.mockReturnValue(null)
+    const res = await request(app).get('/api/last-read')
+    expect(res.status).toBe(503)
+    expect(res.body).toEqual({ pending: true })
+  })
+
+  it('returns cached data when cache is populated', async () => {
+    mockedGetCache.mockReturnValue(MOCK_DATA)
     const res = await request(app).get('/api/last-read')
     expect(res.status).toBe(200)
     expect(res.body).toEqual(MOCK_DATA)
-  })
-
-  it('returns 500 when the script exits with an error', async () => {
-    mockExecFile(new Error('script failed') as ExecFileException, '')
-    const res = await request(app).get('/api/last-read')
-    expect(res.status).toBe(500)
-    expect(res.body).toEqual({ error: 'Failed to fetch reading data' })
-  })
-
-  it('returns 500 when stdout is not valid JSON', async () => {
-    mockExecFile(null, 'not valid json')
-    const res = await request(app).get('/api/last-read')
-    expect(res.status).toBe(500)
-    expect(res.body).toEqual({ error: 'Failed to fetch reading data' })
   })
 })
 
@@ -82,10 +70,12 @@ describe('POST /api/chat', () => {
   })
 
   it('streams response text when messages are valid', async () => {
-    mockChat.mockReturnValue((async function* () {
-      yield { message: { content: 'Hello' } }
-      yield { message: { content: ' world' } }
-    })())
+    mockChat.mockReturnValue(
+      (async function* () {
+        yield { message: { content: 'Hello' } }
+        yield { message: { content: ' world' } }
+      })()
+    )
 
     const res = await request(app)
       .post('/api/chat')
