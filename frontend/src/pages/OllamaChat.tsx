@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import Markdown from 'react-markdown'
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
@@ -80,7 +81,7 @@ export default function OllamaChat() {
                 : 'self-start bg-gray-100 text-gray-800'
             }`}
           >
-            {msg.content}
+            {msg.role === 'assistant' ? <Markdown>{msg.content}</Markdown> : msg.content}
           </div>
         ))}
         <div ref={bottomRef} />
