@@ -22,4 +22,9 @@ describe('App', () => {
     render(<MemoryRouter><App /></MemoryRouter>)
     expect(screen.getByText('About Me')).toBeInTheDocument()
   })
+
+  it('renders the Ollama Chat card', () => {
+    render(<MemoryRouter><App /></MemoryRouter>)
+    expect(screen.getByText('Ollama Chat')).toBeInTheDocument()
+  })
 })
