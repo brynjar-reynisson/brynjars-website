@@ -23,7 +23,7 @@ isStreaming: boolean
 1. User submits (Send button or Enter key)
 2. User message appended to `messages`, `input` cleared, `isStreaming` set to `true`
 3. Empty assistant message appended to `messages`
-4. `fetch('POST /api/chat', { message })` called
+4. Full `messages` array (including the new user message) sent via `fetch('POST /api/chat', { messages })`
 5. `response.body.getReader()` reads chunks; each decoded chunk appended to the last assistant message in state
 6. On stream end: `isStreaming` set to `false`
 7. On error: last assistant message set to `"Error: could not reach Ollama"`, `isStreaming` set to `false`
@@ -53,8 +53,11 @@ isStreaming: boolean
 - Verify Shift+Enter does not submit
 - Verify Send button is disabled while `isStreaming` is true
 
+## Backend Change
+
+`POST /api/chat` must be updated to accept `messages: { role: 'user' | 'assistant', content: string }[]` instead of `message: string`, and pass the full array to Ollama. Validation: array must be non-empty.
+
 ## Out of Scope
 
 - Conversation history persistence across page loads
-- Multi-turn context (each message is sent as a standalone prompt)
 - Model selection UI
