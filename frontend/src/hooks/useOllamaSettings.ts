@@ -4,17 +4,17 @@ const COOKIE_NAME = 'ollama_model'
 
 function readCookie(): string | null {
   const match = document.cookie.split('; ').find(c => c.startsWith(COOKIE_NAME + '='))
-  return match ? decodeURIComponent(match.split('=')[1]) : null
+  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : null
 }
 
 function writeCookie(value: string) {
   const expires = new Date()
   expires.setFullYear(expires.getFullYear() + 1)
-  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; SameSite=Strict`
+  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=Strict`
 }
 
 function deleteCookie() {
-  document.cookie = `${COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Strict`
+  document.cookie = `${COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict`
 }
 
 export function useOllamaSettings() {
@@ -24,7 +24,10 @@ export function useOllamaSettings() {
   useEffect(() => {
     const controller = new AbortController()
     fetch('/api/models', { signal: controller.signal })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
       .then((list: string[]) => {
         setModels(list)
         const saved = readCookie()

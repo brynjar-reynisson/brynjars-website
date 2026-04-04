@@ -92,7 +92,22 @@ describe('useOllamaSettings', () => {
 
     const { result } = renderHook(() => useOllamaSettings())
 
-    await new Promise(r => setTimeout(r, 50))
+    await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalled())
+
+    expect(result.current.models).toEqual([])
+    expect(result.current.model).toBeNull()
+  })
+
+  it('keeps models empty and model null when server returns non-ok response', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: 'internal server error' }),
+    } as Response)
+
+    const { result } = renderHook(() => useOllamaSettings())
+
+    await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalled())
 
     expect(result.current.models).toEqual([])
     expect(result.current.model).toBeNull()
