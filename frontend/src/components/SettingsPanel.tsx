@@ -51,7 +51,6 @@ export default function SettingsPanel({ model, setModel, models, isOpen, onClose
           </label>
           <select
             id="model-select"
-            aria-label="Model"
             value={model ?? ''}
             onChange={e => setModel(e.target.value || null)}
             className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
