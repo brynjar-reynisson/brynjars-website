@@ -2,6 +2,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import OllamaChat from '../OllamaChat'
+import { useOllamaSettings } from '../../hooks/useOllamaSettings'
+
+vi.mock('../../hooks/useOllamaSettings', () => ({
+  useOllamaSettings: vi.fn(),
+}))
 
 function mockStreamResponse(chunks: string[]) {
   const encoder = new TextEncoder()
@@ -18,6 +23,7 @@ function mockStreamResponse(chunks: string[]) {
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn())
+  vi.mocked(useOllamaSettings).mockReturnValue({ model: null, setModel: vi.fn(), models: [] })
 })
 
 describe('OllamaChat', () => {
@@ -116,5 +122,43 @@ describe('OllamaChat', () => {
     await waitFor(() =>
       expect(screen.getByText('Error: could not reach Ollama')).toBeInTheDocument()
     )
+  })
+
+  it('renders a settings gear button', () => {
+    render(<MemoryRouter><OllamaChat /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: 'Open settings' })).toBeInTheDocument()
+  })
+
+  it('opens the settings panel when the gear button is clicked', () => {
+    render(<MemoryRouter><OllamaChat /></MemoryRouter>)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Open settings' }))
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
+  })
+
+  it('includes model in fetch body when a model is selected', async () => {
+    vi.mocked(useOllamaSettings).mockReturnValue({ model: 'mistral', setModel: vi.fn(), models: ['mistral'] })
+    vi.mocked(fetch).mockReturnValue(mockStreamResponse(['ok']))
+
+    render(<MemoryRouter><OllamaChat /></MemoryRouter>)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Hello' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalled())
+    const body = JSON.parse((vi.mocked(fetch).mock.calls[0][1] as RequestInit).body as string)
+    expect(body.model).toBe('mistral')
+  })
+
+  it('omits model from fetch body when model is null', async () => {
+    vi.mocked(useOllamaSettings).mockReturnValue({ model: null, setModel: vi.fn(), models: [] })
+    vi.mocked(fetch).mockReturnValue(mockStreamResponse(['ok']))
+
+    render(<MemoryRouter><OllamaChat /></MemoryRouter>)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Hello' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalled())
+    const body = JSON.parse((vi.mocked(fetch).mock.calls[0][1] as RequestInit).body as string)
+    expect(body.model).toBeUndefined()
   })
 })

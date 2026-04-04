@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import Markdown from 'react-markdown'
+import { useOllamaSettings } from '../hooks/useOllamaSettings'
+import SettingsPanel from '../components/SettingsPanel'
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
@@ -8,7 +10,9 @@ export default function OllamaChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const { model, setModel, models } = useOllamaSettings()
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -34,7 +38,10 @@ export default function OllamaChat() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+          ...(model ? { model } : {}),
+        }),
       })
 
       if (!res.ok || !res.body) throw new Error('Bad response')
@@ -69,7 +76,24 @@ export default function OllamaChat() {
           Brynjar's Online Antics
         </h1>
       </Link>
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Ollama Chat</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">Ollama Chat</h2>
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="text-gray-600 hover:text-gray-900 text-xl"
+          aria-label="Open settings"
+        >
+          ⚙
+        </button>
+      </div>
+
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        model={model}
+        setModel={setModel}
+        models={models}
+      />
 
       <div className="flex-1 flex flex-col gap-3 mb-4 overflow-y-auto">
         {messages.map((msg, i) => (
