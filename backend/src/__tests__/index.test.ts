@@ -2,14 +2,14 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 vi.mock('ollama', () => {
   const mockChat = vi.fn()
+  const mockList = vi.fn()
   return {
     Ollama: class {
-      constructor() {
-        this.chat = mockChat
-      }
-      chat: ReturnType<typeof vi.fn>
+      chat = mockChat
+      list = mockList
     },
     __mockChat: mockChat,
+    __mockList: mockList,
   }
 })
 
@@ -24,10 +24,12 @@ import request from 'supertest'
 import { app } from '../index'
 
 const mockChat = (ollamaModule as any).__mockChat
+const mockList = (ollamaModule as any).__mockList
 const mockedGetCache = vi.mocked(getCache)
 
 beforeEach(() => {
   mockChat.mockReset()
+  mockList.mockReset()
   mockedGetCache.mockReset()
 })
 
@@ -92,6 +94,28 @@ describe('POST /api/chat', () => {
     const res = await request(app)
       .post('/api/chat')
       .send({ messages: [{ role: 'user', content: 'Hi' }] })
+
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ error: 'Failed to connect to Ollama' })
+  })
+})
+
+describe('GET /api/models', () => {
+  it('returns model names sorted alphabetically', async () => {
+    mockList.mockResolvedValue({
+      models: [{ name: 'mistral' }, { name: 'codellama' }, { name: 'llama3.2' }],
+    })
+
+    const res = await request(app).get('/api/models')
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual(['codellama', 'llama3.2', 'mistral'])
+  })
+
+  it('returns 500 when ollama list throws', async () => {
+    mockList.mockRejectedValue(new Error('connection refused'))
+
+    const res = await request(app).get('/api/models')
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to connect to Ollama' })

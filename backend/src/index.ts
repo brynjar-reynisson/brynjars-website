@@ -24,6 +24,17 @@ app.get('/api/last-read', (_req, res) => {
   res.json(data)
 })
 
+app.get('/api/models', async (_req, res) => {
+  try {
+    const response = await ollama.list()
+    const names = response.models.map((m) => m.name).sort()
+    res.json(names)
+  } catch (error) {
+    console.error('Ollama list error:', error)
+    res.status(500).json({ error: 'Failed to connect to Ollama' })
+  }
+})
+
 app.post('/api/chat', async (req, res) => {
   const { messages } = req.body
   if (!Array.isArray(messages) || messages.length === 0) {
