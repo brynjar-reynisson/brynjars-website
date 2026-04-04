@@ -40,6 +40,7 @@ export default function SettingsPanel({ model, setModel, models, isOpen, onClose
             onClick={onClose}
             className="text-gray-500 hover:text-gray-900 text-xl leading-none"
             aria-label="Close settings"
+            autoFocus
           >
             ×
           </button>
