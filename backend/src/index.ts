@@ -27,7 +27,7 @@ app.get('/api/last-read', (_req, res) => {
 app.get('/api/models', async (_req, res) => {
   try {
     const response = await ollama.list()
-    const names = response.models.map((m) => m.name).sort()
+    const names = response.models.map((m) => m.name).sort((a, b) => a.localeCompare(b))
     res.json(names)
   } catch (error) {
     console.error('Ollama list error:', error)
