@@ -1,4 +1,6 @@
-interface SettingsPanelProps {
+import { useEffect } from 'react'
+
+export interface SettingsPanelProps {
   model: string | null
   setModel: (m: string | null) => void
   models: string[]
@@ -7,6 +9,15 @@ interface SettingsPanelProps {
 }
 
 export default function SettingsPanel({ model, setModel, models, isOpen, onClose }: SettingsPanelProps) {
+  useEffect(() => {
+    if (!isOpen) return
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return (
@@ -20,6 +31,7 @@ export default function SettingsPanel({ model, setModel, models, isOpen, onClose
       <div
         role="dialog"
         aria-label="Settings"
+        aria-modal="true"
         className="fixed top-0 right-0 h-full w-72 bg-white shadow-lg z-50"
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200">

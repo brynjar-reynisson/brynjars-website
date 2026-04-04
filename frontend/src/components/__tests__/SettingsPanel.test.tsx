@@ -64,6 +64,13 @@ describe('SettingsPanel', () => {
     expect(setModel).toHaveBeenCalledWith('mistral')
   })
 
+  it('calls onClose when Escape is pressed', () => {
+    const onClose = vi.fn()
+    render(<SettingsPanel {...defaultProps} isOpen={true} onClose={onClose} />)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
   it('calls setModel(null) when Default is selected', () => {
     const setModel = vi.fn()
     render(<SettingsPanel {...defaultProps} isOpen={true} model="mistral" setModel={setModel} />)
