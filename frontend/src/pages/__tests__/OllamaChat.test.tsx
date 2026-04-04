@@ -90,6 +90,27 @@ describe('OllamaChat', () => {
     expect(vi.mocked(fetch)).not.toHaveBeenCalled()
   })
 
+  it('shows typing indicator while waiting for first chunk', async () => {
+    let resolveStream!: () => void
+    const pendingStream = new Promise<Response>((resolve) => {
+      resolveStream = () => {
+        const stream = new ReadableStream({ start(c) { c.close() } })
+        resolve({ ok: true, body: stream } as Response)
+      }
+    })
+    vi.mocked(fetch).mockReturnValue(pendingStream)
+
+    render(<MemoryRouter><OllamaChat /></MemoryRouter>)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Hello' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled())
+    expect(screen.getByLabelText('Thinking')).toBeInTheDocument()
+
+    resolveStream()
+    await waitFor(() => expect(screen.queryByLabelText('Thinking')).not.toBeInTheDocument())
+  })
+
   it('disables Send button while streaming', async () => {
     let resolveStream!: () => void
     const pendingStream = new Promise<Response>((resolve) => {

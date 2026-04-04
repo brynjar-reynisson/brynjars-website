@@ -6,6 +6,16 @@ import SettingsPanel from '../components/SettingsPanel'
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
+function TypingIndicator() {
+  return (
+    <span className="flex gap-1 items-center h-4" aria-label="Thinking">
+      <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+      <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+      <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+    </span>
+  )
+}
+
 export default function OllamaChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -105,7 +115,11 @@ export default function OllamaChat() {
                 : 'self-start bg-gray-100 text-gray-800'
             }`}
           >
-            {msg.role === 'assistant' ? <Markdown>{msg.content}</Markdown> : msg.content}
+            {msg.role === 'assistant'
+              ? msg.content === '' && isStreaming
+                ? <TypingIndicator />
+                : <Markdown>{msg.content}</Markdown>
+              : msg.content}
           </div>
         ))}
         <div ref={bottomRef} />
