@@ -41,6 +41,10 @@ app.post('/api/chat', async (req, res) => {
     res.status(400).json({ error: 'messages must be a non-empty array' })
     return
   }
+  if (model !== undefined && typeof model !== 'string') {
+    res.status(400).json({ error: 'model must be a string' })
+    return
+  }
 
   try {
     const response = await ollama.chat({

@@ -107,6 +107,14 @@ describe('POST /api/chat', () => {
     expect(res.body).toEqual({ error: 'Failed to connect to Ollama' })
   })
 
+  it('returns 400 when model is not a string', async () => {
+    const res = await request(app)
+      .post('/api/chat')
+      .send({ messages: [{ role: 'user', content: 'Hi' }], model: 42 })
+    expect(res.status).toBe(400)
+    expect(res.body).toEqual({ error: 'model must be a string' })
+  })
+
   it('uses the provided model when given in the request body', async () => {
     stubChatResponse()
 
