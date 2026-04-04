@@ -58,6 +58,14 @@ describe('GET /api/last-read', () => {
   })
 })
 
+function stubChatResponse() {
+  mockChat.mockReturnValue(
+    (async function* () {
+      yield { message: { content: 'hi' } }
+    })()
+  )
+}
+
 describe('POST /api/chat', () => {
   it('returns 400 when messages is missing', async () => {
     const res = await request(app).post('/api/chat').send({})
@@ -97,6 +105,30 @@ describe('POST /api/chat', () => {
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to connect to Ollama' })
+  })
+
+  it('uses the provided model when given in the request body', async () => {
+    stubChatResponse()
+
+    await request(app)
+      .post('/api/chat')
+      .send({ messages: [{ role: 'user', content: 'Hi' }], model: 'mistral' })
+
+    expect(mockChat).toHaveBeenCalledWith(
+      expect.objectContaining({ model: 'mistral' })
+    )
+  })
+
+  it('falls back to OLLAMA_MODEL env default when model is absent', async () => {
+    stubChatResponse()
+
+    await request(app)
+      .post('/api/chat')
+      .send({ messages: [{ role: 'user', content: 'Hi' }] })
+
+    expect(mockChat).toHaveBeenCalledWith(
+      expect.objectContaining({ model: 'llama3.2' })
+    )
   })
 })
 

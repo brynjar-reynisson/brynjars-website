@@ -36,7 +36,7 @@ app.get('/api/models', async (_req, res) => {
 })
 
 app.post('/api/chat', async (req, res) => {
-  const { messages } = req.body
+  const { messages, model } = req.body
   if (!Array.isArray(messages) || messages.length === 0) {
     res.status(400).json({ error: 'messages must be a non-empty array' })
     return
@@ -44,7 +44,7 @@ app.post('/api/chat', async (req, res) => {
 
   try {
     const response = await ollama.chat({
-      model: OLLAMA_MODEL,
+      model: model ?? OLLAMA_MODEL,
       messages,
       stream: true,
     })
