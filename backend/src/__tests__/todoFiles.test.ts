@@ -67,6 +67,10 @@ describe('readFile', () => {
     await fs.writeFile(path.join(tmpDir, '2026-04-08-Note.txt'), 'hello world')
     expect(await readFile('2026-04-08-Note.txt')).toBe('hello world')
   })
+
+  it('throws when filename contains path traversal', async () => {
+    await expect(readFile('../etc/passwd')).rejects.toThrow('Invalid filename')
+  })
 })
 
 describe('createFile', () => {
@@ -104,6 +108,10 @@ describe('saveFile', () => {
     await saveFile('2026-04-08-Note.txt', 'updated content')
     expect(await fs.readFile(path.join(tmpDir, '2026-04-08-Note.txt'), 'utf8')).toBe('updated content')
   })
+
+  it('throws when filename contains path traversal', async () => {
+    await expect(saveFile('../etc/passwd', 'x')).rejects.toThrow('Invalid filename')
+  })
 })
 
 describe('renameFile', () => {
@@ -123,6 +131,15 @@ describe('renameFile', () => {
 
   it('throws when filename has no date prefix', async () => {
     await expect(renameFile('badname.txt', 'NewName')).rejects.toThrow('Invalid filename')
+  })
+
+  it('throws when oldFilename contains path traversal', async () => {
+    await expect(renameFile('../evil.txt', 'NewName')).rejects.toThrow('Invalid filename')
+  })
+
+  it('throws when newName contains path traversal', async () => {
+    await fs.writeFile(path.join(tmpDir, '2026-04-08-OldName.txt'), '')
+    await expect(renameFile('2026-04-08-OldName.txt', '../evil')).rejects.toThrow('Invalid filename')
   })
 })
 

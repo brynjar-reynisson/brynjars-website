@@ -30,6 +30,7 @@ export async function listFiles(): Promise<{ filename: string; name: string }[]>
 }
 
 export async function readFile(filename: string): Promise<string> {
+  if (path.basename(filename) !== filename) throw new Error('Invalid filename')
   return fs.readFile(path.join(getTodoDir(), filename), 'utf8')
 }
 
@@ -47,6 +48,7 @@ export async function createFile(name: string): Promise<{ filename: string; name
 }
 
 export async function saveFile(filename: string, content: string): Promise<void> {
+  if (path.basename(filename) !== filename) throw new Error('Invalid filename')
   await fs.writeFile(path.join(getTodoDir(), filename), content, 'utf8')
 }
 
@@ -54,6 +56,8 @@ export async function renameFile(
   oldFilename: string,
   newName: string
 ): Promise<{ filename: string }> {
+  if (path.basename(oldFilename) !== oldFilename) throw new Error('Invalid filename')
+  if (path.basename(newName) !== newName) throw new Error('Invalid filename')
   const match = oldFilename.match(/^(\d{4}-\d{2}-\d{2})-/)
   if (!match) throw new Error(`Invalid filename: ${oldFilename}`)
   const newFilename = `${match[1]}-${newName}.txt`
