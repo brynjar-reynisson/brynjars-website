@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { Ollama } from 'ollama'
 import { getCache, startPolling } from './lastReadCache'
+import { ensureDir, ensureDefaultFile, listFiles, readFile, createFile, saveFile, renameFile } from './todoFiles'
 
 const app = express()
 const PORT = process.env.PORT ?? 3001
@@ -64,11 +65,76 @@ app.post('/api/chat', async (req, res) => {
   }
 })
 
+app.get('/api/todo', async (_req, res) => {
+  try {
+    res.json(await listFiles())
+  } catch {
+    res.status(500).json({ error: 'Failed to list files' })
+  }
+})
+
+app.get('/api/todo/:filename', async (req, res) => {
+  try {
+    const content = await readFile(req.params.filename)
+    res.json({ content })
+  } catch {
+    res.status(500).json({ error: 'Failed to read file' })
+  }
+})
+
+app.post('/api/todo', async (req, res) => {
+  const { name } = req.body
+  const trimmedName = typeof name === 'string' ? name.trim() : ''
+  if (!trimmedName) {
+    res.status(400).json({ error: 'name must be a non-empty string' })
+    return
+  }
+  try {
+    const file = await createFile(trimmedName)
+    res.status(201).json(file)
+  } catch {
+    res.status(500).json({ error: 'Failed to create file' })
+  }
+})
+
+app.put('/api/todo/:filename', async (req, res) => {
+  const { content } = req.body
+  if (typeof content !== 'string') {
+    res.status(400).json({ error: 'content must be a string' })
+    return
+  }
+  try {
+    await saveFile(req.params.filename, content)
+    res.status(204).send()
+  } catch {
+    res.status(500).json({ error: 'Failed to save file' })
+  }
+})
+
+app.patch('/api/todo/:filename', async (req, res) => {
+  const { name } = req.body
+  const trimmedName = typeof name === 'string' ? name.trim() : ''
+  if (!trimmedName) {
+    res.status(400).json({ error: 'name must be a non-empty string' })
+    return
+  }
+  try {
+    const result = await renameFile(req.params.filename, trimmedName)
+    res.json(result)
+  } catch {
+    res.status(500).json({ error: 'Failed to rename file' })
+  }
+})
+
 export { app }
 
 if (process.env.NODE_ENV !== 'test') {
-  startPolling(10 * 60 * 1000)
-  app.listen(PORT, () => {
-    console.log(`Backend running on port ${PORT}`)
-  })
+  ;(async () => {
+    await ensureDir()
+    await ensureDefaultFile()
+    startPolling(10 * 60 * 1000)
+    app.listen(PORT, () => {
+      console.log(`Backend running on port ${PORT}`)
+    })
+  })()
 }

@@ -1,5 +1,15 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
+vi.mock('../todoFiles', () => ({
+  ensureDir: vi.fn(),
+  ensureDefaultFile: vi.fn(),
+  listFiles: vi.fn(),
+  readFile: vi.fn(),
+  createFile: vi.fn(),
+  saveFile: vi.fn(),
+  renameFile: vi.fn(),
+}))
+
 vi.mock('ollama', () => {
   const mockChat = vi.fn()
   const mockList = vi.fn()
@@ -22,6 +32,7 @@ import * as ollamaModule from 'ollama'
 import { getCache } from '../lastReadCache'
 import request from 'supertest'
 import { app } from '../index'
+import * as todoFiles from '../todoFiles'
 
 const mockChat = (ollamaModule as any).__mockChat
 const mockList = (ollamaModule as any).__mockList
@@ -31,6 +42,11 @@ beforeEach(() => {
   mockChat.mockReset()
   mockList.mockReset()
   mockedGetCache.mockReset()
+  vi.mocked(todoFiles.listFiles).mockReset()
+  vi.mocked(todoFiles.readFile).mockReset()
+  vi.mocked(todoFiles.createFile).mockReset()
+  vi.mocked(todoFiles.saveFile).mockReset()
+  vi.mocked(todoFiles.renameFile).mockReset()
 })
 
 const MOCK_DATA = [
@@ -159,5 +175,128 @@ describe('GET /api/models', () => {
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to connect to Ollama' })
+  })
+})
+
+describe('GET /api/todo', () => {
+  it('returns the file list', async () => {
+    vi.mocked(todoFiles.listFiles).mockResolvedValue([
+      { filename: '2026-04-08-TODO.txt', name: 'TODO' },
+      { filename: '2026-04-08-Work.txt', name: 'Work' },
+    ])
+    const res = await request(app).get('/api/todo')
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual([
+      { filename: '2026-04-08-TODO.txt', name: 'TODO' },
+      { filename: '2026-04-08-Work.txt', name: 'Work' },
+    ])
+  })
+
+  it('returns 500 when listFiles throws', async () => {
+    vi.mocked(todoFiles.listFiles).mockRejectedValue(new Error('disk error'))
+    const res = await request(app).get('/api/todo')
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ error: 'Failed to list files' })
+  })
+})
+
+describe('GET /api/todo/:filename', () => {
+  it('returns content of the file', async () => {
+    vi.mocked(todoFiles.readFile).mockResolvedValue('my note content')
+    const res = await request(app).get('/api/todo/2026-04-08-TODO.txt')
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ content: 'my note content' })
+  })
+
+  it('returns 500 when readFile throws', async () => {
+    vi.mocked(todoFiles.readFile).mockRejectedValue(new Error('not found'))
+    const res = await request(app).get('/api/todo/2026-04-08-TODO.txt')
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ error: 'Failed to read file' })
+  })
+})
+
+describe('POST /api/todo', () => {
+  it('creates a file and returns filename and name', async () => {
+    vi.mocked(todoFiles.createFile).mockResolvedValue({
+      filename: '2026-04-08-New.txt',
+      name: 'New',
+    })
+    const res = await request(app).post('/api/todo').send({ name: 'New' })
+    expect(res.status).toBe(201)
+    expect(res.body).toEqual({ filename: '2026-04-08-New.txt', name: 'New' })
+    expect(vi.mocked(todoFiles.createFile)).toHaveBeenCalledWith('New')
+  })
+
+  it('returns 400 when name is missing', async () => {
+    const res = await request(app).post('/api/todo').send({})
+    expect(res.status).toBe(400)
+    expect(res.body).toEqual({ error: 'name must be a non-empty string' })
+  })
+
+  it('returns 500 when createFile throws', async () => {
+    vi.mocked(todoFiles.createFile).mockRejectedValue(new Error('disk error'))
+    const res = await request(app).post('/api/todo').send({ name: 'New' })
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ error: 'Failed to create file' })
+  })
+})
+
+describe('PUT /api/todo/:filename', () => {
+  it('saves content and returns 204', async () => {
+    vi.mocked(todoFiles.saveFile).mockResolvedValue()
+    const res = await request(app)
+      .put('/api/todo/2026-04-08-TODO.txt')
+      .send({ content: 'new content' })
+    expect(res.status).toBe(204)
+    expect(vi.mocked(todoFiles.saveFile)).toHaveBeenCalledWith(
+      '2026-04-08-TODO.txt',
+      'new content'
+    )
+  })
+
+  it('returns 400 when content is missing', async () => {
+    const res = await request(app).put('/api/todo/2026-04-08-TODO.txt').send({})
+    expect(res.status).toBe(400)
+    expect(res.body).toEqual({ error: 'content must be a string' })
+  })
+
+  it('returns 500 when saveFile throws', async () => {
+    vi.mocked(todoFiles.saveFile).mockRejectedValue(new Error('disk error'))
+    const res = await request(app)
+      .put('/api/todo/2026-04-08-TODO.txt')
+      .send({ content: 'x' })
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ error: 'Failed to save file' })
+  })
+})
+
+describe('PATCH /api/todo/:filename', () => {
+  it('renames the file and returns the new filename', async () => {
+    vi.mocked(todoFiles.renameFile).mockResolvedValue({ filename: '2026-04-08-NewName.txt' })
+    const res = await request(app)
+      .patch('/api/todo/2026-04-08-OldName.txt')
+      .send({ name: 'NewName' })
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ filename: '2026-04-08-NewName.txt' })
+    expect(vi.mocked(todoFiles.renameFile)).toHaveBeenCalledWith(
+      '2026-04-08-OldName.txt',
+      'NewName'
+    )
+  })
+
+  it('returns 400 when name is missing', async () => {
+    const res = await request(app).patch('/api/todo/2026-04-08-OldName.txt').send({})
+    expect(res.status).toBe(400)
+    expect(res.body).toEqual({ error: 'name must be a non-empty string' })
+  })
+
+  it('returns 500 when renameFile throws', async () => {
+    vi.mocked(todoFiles.renameFile).mockRejectedValue(new Error('disk error'))
+    const res = await request(app)
+      .patch('/api/todo/2026-04-08-OldName.txt')
+      .send({ name: 'NewName' })
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ error: 'Failed to rename file' })
   })
 })
