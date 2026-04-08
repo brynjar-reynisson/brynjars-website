@@ -100,6 +100,10 @@ describe('createFile', () => {
     const third = await createFile('Note')
     expect(third.name).toBe('Note-3')
   })
+
+  it('throws when name contains path traversal', async () => {
+    await expect(createFile('../evil')).rejects.toThrow('Invalid filename')
+  })
 })
 
 describe('saveFile', () => {
