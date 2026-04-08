@@ -20,14 +20,14 @@ Handles all file system operations for the TODO folder.
 **Exports:**
 - `ensureDir()` — creates `TODO_DIR` if it does not exist
 - `ensureDefaultFile()` — if `TODO_DIR` is empty, creates `<YYYY>-<M>-<D>-TODO.txt` with today's date (called at startup)
-- `listFiles()` — returns `{ filename: string, name: string }[]` sorted ascending by filename (which sorts by date). `name` is the filename with the date prefix (`YYYY-M-D-`) and `.txt` extension removed.
+- `listFiles()` — returns `{ filename: string, name: string }[]` sorted ascending by filename (which sorts correctly by date due to zero-padding). `name` is the filename with the date prefix (`YYYY-MM-DD-`) and `.txt` extension removed.
 - `readFile(filename: string)` → `Promise<string>` — reads and returns file content
 - `createFile(name: string)` → `Promise<{ filename: string, name: string }>` — creates `<YYYY>-<M>-<D>-<name>.txt` with today's date and empty content, returns the new entry
 - `saveFile(filename: string, content: string)` → `Promise<void>` — writes content to the file
 - `renameFile(oldFilename: string, newName: string)` → `Promise<{ filename: string }>` — renames the file on disk, keeping the original date prefix and replacing only the name part. Returns the new filename.
 
-**Filename format:** `<year>-<month_number>-<day>-<name>.txt`
-- Example: `2026-4-8-TODO.txt` (no zero-padding)
+**Filename format:** `<year>-<MM>-<DD>-<name>.txt`
+- Example: `2026-04-08-TODO.txt` (month and day are zero-padded to two digits)
 
 ### Routes added to `backend/src/index.ts`
 
