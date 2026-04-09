@@ -4,7 +4,7 @@
 
 ## Summary
 
-Add password protection to the TODO editor. The backend verifies a password against a hashed value stored in `.env`, issues a persistent random token saved to a file, and guards all TODO routes. The frontend shows a lock screen until authenticated and keeps the editor read-only while unauthenticated.
+Add password protection to the TODO editor. The backend verifies a password against a hashed value stored in `.env`, issues a persistent random token saved to a file, and guards all TODO routes. The frontend always renders the editor but keeps it read-only until authenticated. A lock icon in the sidebar header opens an inline password input; on success it unlocks to full editing.
 
 ---
 
@@ -70,19 +70,25 @@ All fetch calls in the hook include `Authorization: Bearer <token>` header, wher
 ### Changes to `frontend/src/pages/Todo.tsx`
 
 - Imports `useTodoAuth`
-- Rendering logic:
-  1. `isChecking === true` → render nothing (blank screen while validating stored token)
-  2. `isAuthenticated === false` → render lock screen (see below)
-  3. `isAuthenticated === true` → render existing two-panel editor
+- `isChecking === true` → render nothing (blank while initial token validation completes)
+- Otherwise always renders the full two-panel editor
 
-**Lock screen:**
-- Centered on full screen
-- Shows a lock icon (🔒), a password `<input type="password">`, and a submit button
-- On submit: calls `login(password)`. If returns `false`, shows inline error "Incorrect password"
-- Submits on Enter key or button click
+**Lock icon in the sidebar header:**
+- Sits next to the `+` button in the sidebar header
+- Shows 🔒 when `!isAuthenticated`, 🔓 when `isAuthenticated`
+- Clicking 🔒 toggles an inline password input open next to the icon
+- The inline input is a `<input type="password">` with a submit button; submits on Enter or button click
+- On submit: calls `login(password)`. If returns `false`, shows inline error "Incorrect password". On success: input closes, icon switches to 🔓.
+- Clicking 🔓 does nothing (no logout UI in scope)
 
-**Editor read-only safeguard:**
-- The `<textarea>` in the editor has `readOnly={!isAuthenticated}` so the editor is non-editable even if the lock screen is somehow bypassed
+**Unauthenticated state:**
+- File list is visible and files can be selected (read-only viewing)
+- `<textarea>` has `readOnly={true}` — content visible, not editable
+- `+` button click is a no-op when `!isAuthenticated`
+- Inline rename does not activate on file click when `!isAuthenticated`
+
+**Authenticated state:**
+- Full editing enabled: textarea editable, `+` button works, inline rename works
 
 ---
 
