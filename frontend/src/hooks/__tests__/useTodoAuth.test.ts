@@ -120,4 +120,13 @@ describe('useTodoAuth', () => {
     expect(result.current.isAuthenticated).toBe(false)
     expect(localStorage.getItem('todo_token')).toBeNull()
   })
+
+  it('sets isAuthenticated=false when token validation fetch fails with network error', async () => {
+    localStorage.setItem('todo_token', 'my-token')
+    vi.mocked(fetch).mockRejectedValue(new Error('network error'))
+
+    const { result } = renderHook(() => useTodoAuth())
+    await waitFor(() => expect(result.current.isChecking).toBe(false))
+    expect(result.current.isAuthenticated).toBe(false)
+  })
 })
