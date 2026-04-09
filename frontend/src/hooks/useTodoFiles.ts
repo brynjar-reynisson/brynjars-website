@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
-type TodoFile = { filename: string; name: string }
+export type TodoFile = { filename: string; name: string }
 
 export function useTodoFiles() {
   const [files, setFiles] = useState<TodoFile[]>([])

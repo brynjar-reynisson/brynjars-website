@@ -67,6 +67,14 @@ describe('useTodoFiles', () => {
       await result.current.createFile('New')
     })
 
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      '/api/todo',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ name: 'New' }),
+      })
+    )
+
     expect(result.current.files[0]).toEqual(newFile)
     expect(result.current.selectedFilename).toBe(newFile.filename)
     expect(result.current.content).toBe('')
