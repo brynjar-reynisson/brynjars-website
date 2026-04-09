@@ -3,6 +3,7 @@ import cors from 'cors'
 import { Ollama } from 'ollama'
 import { getCache, startPolling } from './lastReadCache'
 import { ensureDir, ensureDefaultFile, listFiles, readFile, createFile, saveFile, renameFile } from './todoFiles'
+import { verifyPassword, generateToken, loadToken, saveToken } from './todoAuth'
 
 const app = express()
 const PORT = process.env.PORT ?? 3001
@@ -65,6 +66,29 @@ app.post('/api/chat', async (req, res) => {
   }
 })
 
+function parseBearerToken(authHeader: string | undefined): string | null {
+  if (!authHeader?.startsWith('Bearer ')) return null
+  return authHeader.slice(7)
+}
+
+async function requireTodoAuth(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void> {
+  const token = parseBearerToken(req.headers.authorization)
+  if (token === null) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+  const stored = await loadToken()
+  if (stored !== token) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+  next()
+}
+
 function handleTodoError(err: unknown, res: express.Response, fallbackMessage: string): void {
   if (err instanceof Error && err.message === 'Invalid filename') {
     res.status(400).json({ error: 'Invalid filename' })
@@ -73,7 +97,37 @@ function handleTodoError(err: unknown, res: express.Response, fallbackMessage: s
   }
 }
 
-app.get('/api/todo', async (_req, res) => {
+app.post('/api/todo/auth', async (req, res) => {
+  const { password } = req.body
+  if (!password || typeof password !== 'string') {
+    res.status(400).json({ error: 'password is required' })
+    return
+  }
+  try {
+    const valid = await verifyPassword(password)
+    if (!valid) {
+      res.status(401).json({ error: 'Invalid password' })
+      return
+    }
+    const token = generateToken()
+    await saveToken(token)
+    res.json({ token })
+  } catch {
+    res.status(500).json({ error: 'Authentication failed' })
+  }
+})
+
+app.get('/api/todo/auth', async (req, res) => {
+  const token = parseBearerToken(req.headers.authorization)
+  if (token === null) {
+    res.json({ valid: false })
+    return
+  }
+  const stored = await loadToken()
+  res.json({ valid: stored === token })
+})
+
+app.get('/api/todo', requireTodoAuth, async (_req, res) => {
   try {
     res.json(await listFiles())
   } catch {
@@ -81,7 +135,7 @@ app.get('/api/todo', async (_req, res) => {
   }
 })
 
-app.get('/api/todo/:filename', async (req, res) => {
+app.get('/api/todo/:filename', requireTodoAuth, async (req, res) => {
   try {
     const content = await readFile(req.params.filename)
     res.json({ content })
@@ -90,7 +144,7 @@ app.get('/api/todo/:filename', async (req, res) => {
   }
 })
 
-app.post('/api/todo', async (req, res) => {
+app.post('/api/todo', requireTodoAuth, async (req, res) => {
   const { name } = req.body
   const trimmedName = typeof name === 'string' ? name.trim() : ''
   if (!trimmedName) {
@@ -105,7 +159,7 @@ app.post('/api/todo', async (req, res) => {
   }
 })
 
-app.put('/api/todo/:filename', async (req, res) => {
+app.put('/api/todo/:filename', requireTodoAuth, async (req, res) => {
   const { content } = req.body
   if (typeof content !== 'string') {
     res.status(400).json({ error: 'content must be a string' })
@@ -119,7 +173,7 @@ app.put('/api/todo/:filename', async (req, res) => {
   }
 })
 
-app.patch('/api/todo/:filename', async (req, res) => {
+app.patch('/api/todo/:filename', requireTodoAuth, async (req, res) => {
   const { name } = req.body
   const trimmedName = typeof name === 'string' ? name.trim() : ''
   if (!trimmedName) {
