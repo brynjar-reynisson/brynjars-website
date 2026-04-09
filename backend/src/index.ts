@@ -65,6 +65,14 @@ app.post('/api/chat', async (req, res) => {
   }
 })
 
+function handleTodoError(err: unknown, res: express.Response, fallbackMessage: string): void {
+  if (err instanceof Error && err.message === 'Invalid filename') {
+    res.status(400).json({ error: 'Invalid filename' })
+  } else {
+    res.status(500).json({ error: fallbackMessage })
+  }
+}
+
 app.get('/api/todo', async (_req, res) => {
   try {
     res.json(await listFiles())
@@ -77,8 +85,8 @@ app.get('/api/todo/:filename', async (req, res) => {
   try {
     const content = await readFile(req.params.filename)
     res.json({ content })
-  } catch {
-    res.status(500).json({ error: 'Failed to read file' })
+  } catch (err) {
+    handleTodoError(err, res, 'Failed to read file')
   }
 })
 
@@ -106,8 +114,8 @@ app.put('/api/todo/:filename', async (req, res) => {
   try {
     await saveFile(req.params.filename, content)
     res.status(204).send()
-  } catch {
-    res.status(500).json({ error: 'Failed to save file' })
+  } catch (err) {
+    handleTodoError(err, res, 'Failed to save file')
   }
 })
 
@@ -121,8 +129,8 @@ app.patch('/api/todo/:filename', async (req, res) => {
   try {
     const result = await renameFile(req.params.filename, trimmedName)
     res.json(result)
-  } catch {
-    res.status(500).json({ error: 'Failed to rename file' })
+  } catch (err) {
+    handleTodoError(err, res, 'Failed to rename file')
   }
 })
 

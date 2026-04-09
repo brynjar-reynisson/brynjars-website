@@ -214,6 +214,13 @@ describe('GET /api/todo/:filename', () => {
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to read file' })
   })
+
+  it('returns 400 when readFile throws Invalid filename', async () => {
+    vi.mocked(todoFiles.readFile).mockRejectedValue(new Error('Invalid filename'))
+    const res = await request(app).get('/api/todo/..%2Fetc%2Fpasswd')
+    expect(res.status).toBe(400)
+    expect(res.body).toEqual({ error: 'Invalid filename' })
+  })
 })
 
 describe('POST /api/todo', () => {
@@ -269,6 +276,15 @@ describe('PUT /api/todo/:filename', () => {
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to save file' })
   })
+
+  it('returns 400 when saveFile throws Invalid filename', async () => {
+    vi.mocked(todoFiles.saveFile).mockRejectedValue(new Error('Invalid filename'))
+    const res = await request(app)
+      .put('/api/todo/..%2Fetc%2Fpasswd')
+      .send({ content: 'x' })
+    expect(res.status).toBe(400)
+    expect(res.body).toEqual({ error: 'Invalid filename' })
+  })
 })
 
 describe('PATCH /api/todo/:filename', () => {
@@ -298,5 +314,14 @@ describe('PATCH /api/todo/:filename', () => {
       .send({ name: 'NewName' })
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to rename file' })
+  })
+
+  it('returns 400 when renameFile throws Invalid filename', async () => {
+    vi.mocked(todoFiles.renameFile).mockRejectedValue(new Error('Invalid filename'))
+    const res = await request(app)
+      .patch('/api/todo/..%2Fetc%2Fpasswd')
+      .send({ name: 'NewName' })
+    expect(res.status).toBe(400)
+    expect(res.body).toEqual({ error: 'Invalid filename' })
   })
 })
