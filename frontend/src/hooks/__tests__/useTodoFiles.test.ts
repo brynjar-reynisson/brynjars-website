@@ -9,10 +9,12 @@ const FILE_LIST = [
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn())
+  localStorage.clear()
 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  localStorage.clear()
 })
 
 describe('useTodoFiles', () => {
@@ -120,5 +122,30 @@ describe('useTodoFiles', () => {
 
     expect(result.current.selectedFilename).toBe('2026-04-07-Renamed.txt')
     expect(result.current.files[0]).toEqual({ filename: '2026-04-07-Renamed.txt', name: 'Renamed' })
+  })
+
+  it('includes Authorization header in list and file fetch on mount', async () => {
+    localStorage.setItem('todo_token', 'test-token')
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => FILE_LIST } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: '' }) } as Response)
+
+    renderHook(() => useTodoFiles())
+    await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2))
+
+    expect(vi.mocked(fetch)).toHaveBeenNthCalledWith(
+      1,
+      '/api/todo',
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
+      })
+    )
+    expect(vi.mocked(fetch)).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('/api/todo/'),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
+      })
+    )
   })
 })

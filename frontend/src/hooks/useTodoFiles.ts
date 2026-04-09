@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 
 export type TodoFile = { filename: string; name: string }
 
+function authHeader(): { Authorization: string } {
+  return { Authorization: `Bearer ${localStorage.getItem('todo_token') ?? ''}` }
+}
+
 export function useTodoFiles() {
   const [files, setFiles] = useState<TodoFile[]>([])
   const [selectedFilename, setSelectedFilename] = useState<string | null>(null)
@@ -10,7 +14,9 @@ export function useTodoFiles() {
   const selectFile = useCallback(async (filename: string) => {
     setSelectedFilename(filename)
     try {
-      const res = await fetch(`/api/todo/${filename}`)
+      const res = await fetch(`/api/todo/${filename}`, {
+        headers: authHeader(),
+      })
       const data: { content: string } = await res.json()
       setContent(data.content)
     } catch {}
@@ -18,7 +24,10 @@ export function useTodoFiles() {
 
   useEffect(() => {
     const controller = new AbortController()
-    fetch('/api/todo', { signal: controller.signal })
+    fetch('/api/todo', {
+      signal: controller.signal,
+      headers: authHeader(),
+    })
       .then((r) => r.json())
       .then((list: TodoFile[]) => {
         setFiles(list)
@@ -32,7 +41,7 @@ export function useTodoFiles() {
     try {
       const res = await fetch('/api/todo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({ name }),
       })
       const newFile: TodoFile = await res.json()
@@ -48,7 +57,7 @@ export function useTodoFiles() {
       try {
         await fetch(`/api/todo/${selectedFilename}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
           body: JSON.stringify({ content: text }),
         })
       } catch {}
@@ -61,7 +70,7 @@ export function useTodoFiles() {
       try {
         const res = await fetch(`/api/todo/${oldFilename}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
           body: JSON.stringify({ name: newName }),
         })
         const { filename: newFilename }: { filename: string } = await res.json()
