@@ -26,6 +26,7 @@ const DEFAULT_HOOK = {
   createFile: vi.fn(),
   saveFile: vi.fn(),
   renameFile: vi.fn(),
+  loadFiles: vi.fn(),
 }
 
 const DEFAULT_AUTH = {

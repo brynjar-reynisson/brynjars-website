@@ -17,10 +17,19 @@ export function useTodoFiles() {
       const res = await fetch(`/api/todo/${filename}`, {
         headers: authHeader(),
       })
+      if (!res.ok) return
       const data: { content: string } = await res.json()
       setContent(data.content)
     } catch {}
   }, [])
+
+  const loadFiles = useCallback(async () => {
+    const res = await fetch('/api/todo', { headers: authHeader() }).catch(() => null)
+    if (!res?.ok) return
+    const list: TodoFile[] = await res.json()
+    setFiles(list)
+    if (list.length > 0) selectFile(list[0].filename)
+  }, [selectFile])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -28,8 +37,9 @@ export function useTodoFiles() {
       signal: controller.signal,
       headers: authHeader(),
     })
-      .then((r) => r.json())
-      .then((list: TodoFile[]) => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((list: TodoFile[] | null) => {
+        if (!list) return
         setFiles(list)
         if (list.length > 0) selectFile(list[0].filename)
       })
@@ -85,5 +95,5 @@ export function useTodoFiles() {
     []
   )
 
-  return { files, selectedFilename, content, setContent, selectFile, createFile, saveFile, renameFile }
+  return { files, selectedFilename, content, setContent, selectFile, createFile, saveFile, renameFile, loadFiles }
 }

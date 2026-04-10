@@ -13,9 +13,14 @@ export default function Todo() {
     createFile,
     saveFile,
     renameFile,
+    loadFiles,
   } = useTodoFiles()
 
   const { isAuthenticated, isChecking, login } = useTodoAuth()
+
+  useEffect(() => {
+    if (isAuthenticated) loadFiles()
+  }, [isAuthenticated, loadFiles])
 
   const [renamingFilename, setRenamingFilename] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
