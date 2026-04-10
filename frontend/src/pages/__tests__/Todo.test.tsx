@@ -42,9 +42,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
-})
-
-afterEach(() => {
   vi.useRealTimers()
 })
 
