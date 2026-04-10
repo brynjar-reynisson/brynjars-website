@@ -27,4 +27,9 @@ describe('App', () => {
     render(<MemoryRouter><App /></MemoryRouter>)
     expect(screen.getByText('Ollama Chat')).toBeInTheDocument()
   })
+
+  it('renders the TODO card', () => {
+    render(<MemoryRouter><App /></MemoryRouter>)
+    expect(screen.getByText('TODO')).toBeInTheDocument()
+  })
 })

@@ -6,12 +6,14 @@ import GrandStaff from './pages/GrandStaff'
 import CircleOfFifths from './pages/CircleOfFifths'
 import About from './pages/About'
 import OllamaChat from './pages/OllamaChat'
+import Todo from './pages/Todo'
 
 const NAV_ITEMS = [
   { icon: '🤖', title: 'Ollama Chat', to: '/ollama-chat' },
   { icon: '🎛', title: 'VST Plugins', to: '/vst-plugins' },
   { icon: '🔍', title: 'DigitalMe', to: 'https://digitalme.breynisson.org/' },
   { icon: '📚', title: 'Last Read', to: '/last-read' },
+  { icon: '📋', title: 'TODO', to: '/todo' },
   { icon: '👤', title: 'About Me', to: '/about' },
 ]
 
@@ -37,6 +39,7 @@ export default function App() {
       <Route path="/vst-plugins" element={<VstPlugins />} />
       <Route path="/vst-plugins/grand-staff" element={<GrandStaff />} />
       <Route path="/vst-plugins/circle-of-fifths" element={<CircleOfFifths />} />
+      <Route path="/todo" element={<Todo />} />
       <Route path="/about" element={<About />} />
     </Routes>
   )
