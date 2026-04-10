@@ -201,7 +201,7 @@ describe('GET /api/todo', () => {
       { filename: '2026-04-08-TODO.txt', name: 'TODO' },
       { filename: '2026-04-08-Work.txt', name: 'Work' },
     ])
-    const res = await authed(request(app).get('/api/todo'))
+    const res = await request(app).get('/api/todo')
     expect(res.status).toBe(200)
     expect(res.body).toEqual([
       { filename: '2026-04-08-TODO.txt', name: 'TODO' },
@@ -211,7 +211,7 @@ describe('GET /api/todo', () => {
 
   it('returns 500 when listFiles throws', async () => {
     vi.mocked(todoFiles.listFiles).mockRejectedValue(new Error('disk error'))
-    const res = await authed(request(app).get('/api/todo'))
+    const res = await request(app).get('/api/todo')
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to list files' })
   })
@@ -220,21 +220,21 @@ describe('GET /api/todo', () => {
 describe('GET /api/todo/:filename', () => {
   it('returns content of the file', async () => {
     vi.mocked(todoFiles.readFile).mockResolvedValue('my note content')
-    const res = await authed(request(app).get('/api/todo/2026-04-08-TODO.txt'))
+    const res = await request(app).get('/api/todo/2026-04-08-TODO.txt')
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ content: 'my note content' })
   })
 
   it('returns 500 when readFile throws', async () => {
     vi.mocked(todoFiles.readFile).mockRejectedValue(new Error('not found'))
-    const res = await authed(request(app).get('/api/todo/2026-04-08-TODO.txt'))
+    const res = await request(app).get('/api/todo/2026-04-08-TODO.txt')
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to read file' })
   })
 
   it('returns 400 when readFile throws Invalid filename', async () => {
     vi.mocked(todoFiles.readFile).mockRejectedValue(new Error('Invalid filename'))
-    const res = await authed(request(app).get('/api/todo/..%2Fetc%2Fpasswd'))
+    const res = await request(app).get('/api/todo/..%2Fetc%2Fpasswd')
     expect(res.status).toBe(400)
     expect(res.body).toEqual({ error: 'Invalid filename' })
   })
@@ -417,25 +417,27 @@ describe('GET /api/todo/auth', () => {
 })
 
 describe('requireTodoAuth middleware', () => {
-  it('returns 401 on GET /api/todo without auth header', async () => {
-    const res = await request(app).get('/api/todo')
+  it('returns 401 on POST /api/todo without auth header', async () => {
+    const res = await request(app).post('/api/todo').send({ name: 'New' })
     expect(res.status).toBe(401)
     expect(res.body).toEqual({ error: 'Unauthorized' })
   })
 
-  it('returns 401 on GET /api/todo with wrong token', async () => {
+  it('returns 401 on POST /api/todo with wrong token', async () => {
     vi.mocked(todoAuth.loadToken).mockResolvedValue('valid-token')
     const res = await request(app)
-      .get('/api/todo')
+      .post('/api/todo')
       .set('Authorization', 'Bearer wrong-token')
+      .send({ name: 'New' })
     expect(res.status).toBe(401)
   })
 
-  it('returns 401 on GET /api/todo when no session file exists', async () => {
+  it('returns 401 on POST /api/todo when no session file exists', async () => {
     vi.mocked(todoAuth.loadToken).mockResolvedValue(null)
     const res = await request(app)
-      .get('/api/todo')
+      .post('/api/todo')
       .set('Authorization', 'Bearer anything')
+      .send({ name: 'New' })
     expect(res.status).toBe(401)
   })
 })

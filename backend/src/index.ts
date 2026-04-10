@@ -127,7 +127,7 @@ app.get('/api/todo/auth', async (req, res) => {
   res.json({ valid: stored === token })
 })
 
-app.get('/api/todo', requireTodoAuth, async (_req, res) => {
+app.get('/api/todo', async (_req, res) => {
   try {
     res.json(await listFiles())
   } catch {
@@ -135,7 +135,7 @@ app.get('/api/todo', requireTodoAuth, async (_req, res) => {
   }
 })
 
-app.get('/api/todo/:filename', requireTodoAuth, async (req, res) => {
+app.get('/api/todo/:filename', async (req, res) => {
   try {
     const content = await readFile(req.params.filename)
     res.json({ content })
