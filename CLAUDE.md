@@ -24,6 +24,7 @@ Personal website for Brynjar.
 | `/vst-plugins/grand-staff` | `GrandStaff` | Grand Staff MIDI Visualizer detail page |
 | `/vst-plugins/circle-of-fifths` | `CircleOfFifths` | Interactive Circle of Fifths detail page |
 | `/todo` | `Todo` | Two-panel TODO editor (sidebar + autosave textarea) |
+| `/system-monitor` | `SystemMonitor` | Live CPU and memory usage, polled from backend every 10s |
 | `/about` | `About` | Personal bio, work history, education, links |
 
 The home page also has a nav card linking externally to `https://digitalme.breynisson.org/` (DigitalMe).
@@ -36,6 +37,7 @@ The home page also has a nav card linking externally to `https://digitalme.breyn
 - **School reading tracker:** `/last-read` page fetches from `GET /api/last-read` on the backend (port 3001), which spawns `python last_read.py --json` in the directory set by `LAST_READ_DIR` env var (default: `C:\Users\Lenovo\misc_projects\last-read`). Displays one card per boy with name, pages, and weekday.
 - **Ollama chat:** `/ollama-chat` page streams responses from a local Ollama instance via `POST /api/chat`. A gear button (⚙) in the header opens a settings panel where the user can select the model. Available models are fetched from `GET /api/models` (calls `ollama.list()`). The selected model is persisted in an `ollama_model` cookie; when absent or invalid the backend default (`OLLAMA_MODEL` env var, default `llama3.2`) is used.
 - **About page:** `/about` shows a personal bio, work history timeline (1999–present), education, and contact/social links.
+- **System Monitor:** `/system-monitor` page fetches from `GET /api/system` on the backend (port 3001), which samples CPU utilisation using two `os.cpus()` snapshots 100ms apart and reads `os.freemem()`/`os.totalmem()`. Returns `{ cpuPercent, memUsedMb, memTotalMb }`. The frontend polls every 10 seconds and renders two labelled progress bars (CPU %, memory used/total GB).
 - **TODO editor:** `/todo` page is a two-panel editor. Left sidebar lists `.txt` files from a `TODO` folder in the backend's working directory (configurable via `TODO_DIR` env var, defaults to `./TODO`). File names are formatted as `YYYY-MM-DD-<name>.txt`. Files are visible in read-only mode to all visitors. A lock icon (🔒/🔓) in the sidebar header opens an inline password input; correct password unlocks full editing (rename, create, save). Session token persisted to `TODO_DIR/.session` and `localStorage`. Password hash stored in `backend/.env` as `HASHED_PASSWORD` (argon2id). Backend API: `GET/POST /api/todo`, `GET/PUT/PATCH /api/todo/:filename`, `POST/GET /api/todo/auth`.
 
 ## Conventions
