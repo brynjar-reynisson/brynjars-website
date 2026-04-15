@@ -28,7 +28,7 @@ describe('SystemMonitor', () => {
 
     const heading = screen.getByRole('heading', { name: "Brynjar's Online Antics" })
     expect(heading).toBeInTheDocument()
-    expect(heading.closest('a')).toHaveAttribute('href', '/')
+    expect(heading.querySelector('a')).toHaveAttribute('href', '/')
   })
 
   it('shows loading state before fetch resolves', () => {

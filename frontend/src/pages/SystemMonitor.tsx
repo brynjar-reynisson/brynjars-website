@@ -42,11 +42,11 @@ export default function SystemMonitor() {
 
   return (
     <div className="min-h-screen bg-white px-6 py-12 max-w-2xl mx-auto">
-      <Link to="/" className="text-gray-900 no-underline hover:underline">
-        <h1 className="text-4xl font-bold text-gray-900 mb-10">
+      <h1 className="text-4xl font-bold text-gray-900 mb-10">
+        <Link to="/" className="text-gray-900 no-underline hover:underline">
           Brynjar's Online Antics
-        </h1>
-      </Link>
+        </Link>
+      </h1>
       {error && <p className="text-red-500">Could not load system stats.</p>}
       {!error && !stats && <p className="text-gray-500">Loading...</p>}
       {stats && (
