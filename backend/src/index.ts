@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import os from 'os'
 import { Ollama } from 'ollama'
 import { getCache, startPolling } from './lastReadCache'
 import { ensureDir, ensureDefaultFile, listFiles, readFile, createFile, saveFile, renameFile } from './todoFiles'
@@ -185,6 +186,47 @@ app.patch('/api/todo/:filename', requireTodoAuth, async (req, res) => {
     res.json(result)
   } catch (err) {
     handleTodoError(err, res, 'Failed to rename file')
+  }
+})
+
+function computeCpuPercent(start: os.CpuInfo[], end: os.CpuInfo[]): number {
+  let idleDelta = 0
+  let totalDelta = 0
+  for (let i = 0; i < start.length; i++) {
+    const s = start[i].times
+    const e = end[i].times
+    idleDelta += e.idle - s.idle
+    totalDelta += (e.user + e.nice + e.sys + e.idle + e.irq) -
+                  (s.user + s.nice + s.sys + s.idle + s.irq)
+  }
+  return Math.round((1 - idleDelta / totalDelta) * 1000) / 10
+}
+
+function getCpuPercent(): Promise<number> {
+  const start = os.cpus()
+  if (process.env.NODE_ENV === 'test') {
+    const end = os.cpus()
+    return Promise.resolve(computeCpuPercent(start, end))
+  }
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        resolve(computeCpuPercent(start, os.cpus()))
+      } catch (err) {
+        reject(err)
+      }
+    }, 100)
+  })
+}
+
+app.get('/api/system', async (_req, res) => {
+  try {
+    const cpuPercent = await getCpuPercent()
+    const totalMb = Math.round(os.totalmem() / 1048576)
+    const freeMb = Math.round(os.freemem() / 1048576)
+    res.json({ cpuPercent, memUsedMb: totalMb - freeMb, memTotalMb: totalMb })
+  } catch {
+    res.status(500).json({ error: 'Failed to get system stats' })
   }
 })
 

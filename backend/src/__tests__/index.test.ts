@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 vi.mock('../todoFiles', () => ({
   ensureDir: vi.fn(),
@@ -35,16 +35,32 @@ vi.mock('../todoAuth', () => ({
   saveToken: vi.fn(),
 }))
 
+vi.mock('os', () => {
+  const mockCpus = vi.fn()
+  const mockTotalmem = vi.fn()
+  const mockFreemem = vi.fn()
+  return {
+    default: { cpus: mockCpus, totalmem: mockTotalmem, freemem: mockFreemem },
+    __mockCpus: mockCpus,
+    __mockTotalmem: mockTotalmem,
+    __mockFreemem: mockFreemem,
+  }
+})
+
 import * as ollamaModule from 'ollama'
 import { getCache } from '../lastReadCache'
 import request from 'supertest'
 import { app } from '../index'
 import * as todoFiles from '../todoFiles'
 import * as todoAuth from '../todoAuth'
+import * as osModule from 'os'
 
 const mockChat = (ollamaModule as any).__mockChat
 const mockList = (ollamaModule as any).__mockList
 const mockedGetCache = vi.mocked(getCache)
+const mockCpus = (osModule as any).__mockCpus as ReturnType<typeof vi.fn>
+const mockTotalmem = (osModule as any).__mockTotalmem as ReturnType<typeof vi.fn>
+const mockFreemem = (osModule as any).__mockFreemem as ReturnType<typeof vi.fn>
 
 const TOKEN = 'valid-token'
 function authed(req: any) {
@@ -64,6 +80,9 @@ beforeEach(() => {
   vi.mocked(todoAuth.generateToken).mockReset()
   vi.mocked(todoAuth.loadToken).mockReset().mockResolvedValue('valid-token')
   vi.mocked(todoAuth.saveToken).mockReset()
+  mockCpus.mockReset()
+  mockTotalmem.mockReset()
+  mockFreemem.mockReset()
 })
 
 const MOCK_DATA = [
@@ -439,5 +458,67 @@ describe('requireTodoAuth middleware', () => {
       .set('Authorization', 'Bearer anything')
       .send({ name: 'New' })
     expect(res.status).toBe(401)
+  })
+})
+
+describe('GET /api/system', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('returns cpuPercent, memUsedMb, and memTotalMb', async () => {
+    const startCpus = [{ times: { user: 100, nice: 0, sys: 50, idle: 850, irq: 0 } }]
+    const endCpus   = [{ times: { user: 200, nice: 0, sys: 100, idle: 900, irq: 0 } }]
+    mockCpus.mockReturnValueOnce(startCpus).mockReturnValueOnce(endCpus)
+    mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024)
+    mockFreemem.mockReturnValue(7 * 1024 * 1024 * 1024)
+
+    const responsePromise = request(app).get('/api/system')
+    await vi.advanceTimersByTimeAsync(100)
+    const res = await responsePromise
+
+    // idle delta: 900-850=50, total delta: (200+100+900)-(100+50+850)=200
+    // cpuPercent = (1 - 50/200) * 100 = 75.0
+    // memTotalMb = round(16*1024^3 / 1048576) = 16384
+    // memUsedMb  = round((16-7)*1024^3 / 1048576) = 9216
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ cpuPercent: 75.0, memUsedMb: 9216, memTotalMb: 16384 })
+  })
+
+  it('averages cpu across multiple cores', async () => {
+    const startCpus = [
+      { times: { user: 100, nice: 0, sys: 50, idle: 850, irq: 0 } },
+      { times: { user: 200, nice: 0, sys: 100, idle: 700, irq: 0 } },
+    ]
+    const endCpus = [
+      { times: { user: 200, nice: 0, sys: 100, idle: 900, irq: 0 } },
+      { times: { user: 300, nice: 0, sys: 150, idle: 750, irq: 0 } },
+    ]
+    mockCpus.mockReturnValueOnce(startCpus).mockReturnValueOnce(endCpus)
+    mockTotalmem.mockReturnValue(8 * 1024 * 1024 * 1024)
+    mockFreemem.mockReturnValue(4 * 1024 * 1024 * 1024)
+
+    const responsePromise = request(app).get('/api/system')
+    await vi.advanceTimersByTimeAsync(100)
+    const res = await responsePromise
+
+    // Core 0: idle delta=50, total delta=200 → 75% used
+    // Core 1: idle delta=50, total delta=200 → 75% used
+    // Combined: idle delta=100, total delta=400 → cpuPercent=75.0
+    // memTotalMb=8192, memUsedMb=4096
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ cpuPercent: 75.0, memUsedMb: 4096, memTotalMb: 8192 })
+  })
+
+  it('returns 500 when os.cpus throws', async () => {
+    mockCpus.mockImplementation(() => { throw new Error('os error') })
+    mockTotalmem.mockReturnValue(8 * 1024 * 1024 * 1024)
+    mockFreemem.mockReturnValue(4 * 1024 * 1024 * 1024)
+
+    const responsePromise = request(app).get('/api/system')
+    await vi.advanceTimersByTimeAsync(100)
+    const res = await responsePromise
+
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ error: 'Failed to get system stats' })
   })
 })
