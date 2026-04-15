@@ -148,4 +148,101 @@ describe('useTodoFiles', () => {
       })
     )
   })
+
+  it('restores last-opened file from localStorage on mount', async () => {
+    localStorage.setItem('todo_last_open', '2026-04-08-Beta.txt')
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => FILE_LIST } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: 'beta content' }) } as Response)
+
+    const { result } = renderHook(() => useTodoFiles())
+
+    await waitFor(() => expect(result.current.selectedFilename).toBe('2026-04-08-Beta.txt'))
+    expect(result.current.content).toBe('beta content')
+  })
+
+  it('falls back to first file when stored key is not in file list', async () => {
+    localStorage.setItem('todo_last_open', 'deleted-file.txt')
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => FILE_LIST } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: 'alpha content' }) } as Response)
+
+    const { result } = renderHook(() => useTodoFiles())
+
+    await waitFor(() => expect(result.current.selectedFilename).toBe('2026-04-07-Alpha.txt'))
+    expect(result.current.content).toBe('alpha content')
+  })
+
+  it('selectFile writes the selected filename to localStorage', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => FILE_LIST } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: '' }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: 'beta content' }) } as Response)
+
+    const { result } = renderHook(() => useTodoFiles())
+    await waitFor(() => expect(result.current.files).toEqual(FILE_LIST))
+
+    await act(async () => {
+      await result.current.selectFile('2026-04-08-Beta.txt')
+    })
+
+    expect(localStorage.getItem('todo_last_open')).toBe('2026-04-08-Beta.txt')
+  })
+
+  it('createFile writes the new filename to localStorage', async () => {
+    const newFile = { filename: '2026-04-09-Gamma.txt', name: 'Gamma' }
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => FILE_LIST } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: '' }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => newFile } as Response)
+
+    const { result } = renderHook(() => useTodoFiles())
+    await waitFor(() => expect(result.current.files).toEqual(FILE_LIST))
+
+    await act(async () => {
+      await result.current.createFile('Gamma')
+    })
+
+    expect(localStorage.getItem('todo_last_open')).toBe('2026-04-09-Gamma.txt')
+  })
+
+  it('renameFile updates localStorage when the renamed file was the stored key', async () => {
+    localStorage.setItem('todo_last_open', '2026-04-07-Alpha.txt')
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => FILE_LIST } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: '' }) } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ filename: '2026-04-07-Renamed.txt' }),
+      } as Response)
+
+    const { result } = renderHook(() => useTodoFiles())
+    await waitFor(() => expect(result.current.selectedFilename).toBe('2026-04-07-Alpha.txt'))
+
+    await act(async () => {
+      await result.current.renameFile('2026-04-07-Alpha.txt', 'Renamed')
+    })
+
+    expect(localStorage.getItem('todo_last_open')).toBe('2026-04-07-Renamed.txt')
+  })
+
+  it('renameFile does not change localStorage when a different file is renamed', async () => {
+    localStorage.setItem('todo_last_open', '2026-04-08-Beta.txt')
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => FILE_LIST } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: '' }) } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ filename: '2026-04-07-Renamed.txt' }),
+      } as Response)
+
+    const { result } = renderHook(() => useTodoFiles())
+    await waitFor(() => expect(result.current.selectedFilename).toBe('2026-04-08-Beta.txt'))
+
+    await act(async () => {
+      await result.current.renameFile('2026-04-07-Alpha.txt', 'Renamed')
+    })
+
+    expect(localStorage.getItem('todo_last_open')).toBe('2026-04-08-Beta.txt')
+  })
 })
