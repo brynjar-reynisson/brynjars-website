@@ -7,6 +7,7 @@ import CircleOfFifths from './pages/CircleOfFifths'
 import About from './pages/About'
 import OllamaChat from './pages/OllamaChat'
 import Todo from './pages/Todo'
+import SystemMonitor from './pages/SystemMonitor'
 
 const NAV_ITEMS = [
   { icon: '🤖', title: 'Ollama Chat', to: '/ollama-chat' },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { icon: '🔍', title: 'DigitalMe', to: 'https://digitalme.breynisson.org/' },
   { icon: '📚', title: 'Last Read', to: '/last-read' },
   { icon: '📋', title: 'TODO', to: '/todo' },
+  { icon: '🖥️', title: 'System Monitor', to: '/system-monitor' },
   { icon: '👤', title: 'About Me', to: '/about' },
 ]
 
@@ -21,7 +23,7 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-10 px-4">
       <h1 className="text-4xl font-bold text-gray-900">Brynjar's Online Antics</h1>
-      <div className="flex flex-row flex-wrap gap-6">
+      <div className="flex flex-row flex-wrap gap-6 max-w-full">
         {NAV_ITEMS.map((item) => (
           <NavCard key={item.title} icon={item.icon} title={item.title} to={item.to} />
         ))}
@@ -40,6 +42,7 @@ export default function App() {
       <Route path="/vst-plugins/grand-staff" element={<GrandStaff />} />
       <Route path="/vst-plugins/circle-of-fifths" element={<CircleOfFifths />} />
       <Route path="/todo" element={<Todo />} />
+      <Route path="/system-monitor" element={<SystemMonitor />} />
       <Route path="/about" element={<About />} />
     </Routes>
   )
