@@ -2,8 +2,19 @@ import { useState, useEffect, useCallback } from 'react'
 
 export type TodoFile = { filename: string; name: string }
 
+const LAST_OPEN_KEY = 'todo_last_open'
+
 function authHeader(): { Authorization: string } {
   return { Authorization: `Bearer ${localStorage.getItem('todo_token') ?? ''}` }
+}
+
+function resolveInitialFile(list: TodoFile[]): string {
+  const stored = localStorage.getItem(LAST_OPEN_KEY)
+  if (stored) {
+    const match = list.find((f) => f.filename === stored)
+    if (match) return match.filename
+  }
+  return list[0].filename
 }
 
 export function useTodoFiles() {
@@ -12,6 +23,7 @@ export function useTodoFiles() {
   const [content, setContent] = useState('')
 
   const selectFile = useCallback(async (filename: string) => {
+    localStorage.setItem(LAST_OPEN_KEY, filename)
     setSelectedFilename(filename)
     try {
       const res = await fetch(`/api/todo/${filename}`, {
@@ -28,7 +40,7 @@ export function useTodoFiles() {
     if (!res?.ok) return
     const list: TodoFile[] = await res.json()
     setFiles(list)
-    if (list.length > 0) selectFile(list[0].filename)
+    if (list.length > 0) selectFile(resolveInitialFile(list))
   }, [selectFile])
 
   useEffect(() => {
@@ -41,7 +53,7 @@ export function useTodoFiles() {
       .then((list: TodoFile[] | null) => {
         if (!list) return
         setFiles(list)
-        if (list.length > 0) selectFile(list[0].filename)
+        if (list.length > 0) selectFile(resolveInitialFile(list))
       })
       .catch(() => {})
     return () => controller.abort()
@@ -55,6 +67,7 @@ export function useTodoFiles() {
         body: JSON.stringify({ name }),
       })
       const newFile: TodoFile = await res.json()
+      localStorage.setItem(LAST_OPEN_KEY, newFile.filename)
       setFiles((prev) => [newFile, ...prev])
       setSelectedFilename(newFile.filename)
       setContent('')
@@ -84,6 +97,9 @@ export function useTodoFiles() {
           body: JSON.stringify({ name: newName }),
         })
         const { filename: newFilename }: { filename: string } = await res.json()
+        if (localStorage.getItem(LAST_OPEN_KEY) === oldFilename) {
+          localStorage.setItem(LAST_OPEN_KEY, newFilename)
+        }
         setFiles((prev) =>
           prev.map((f) =>
             f.filename === oldFilename ? { filename: newFilename, name: newName } : f
