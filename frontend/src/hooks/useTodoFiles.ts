@@ -8,7 +8,8 @@ function authHeader(): { Authorization: string } {
   return { Authorization: `Bearer ${localStorage.getItem('todo_token') ?? ''}` }
 }
 
-function resolveInitialFile(list: TodoFile[]): string {
+function resolveInitialFile(list: TodoFile[]): string | null {
+  if (list.length === 0) return null
   const stored = localStorage.getItem(LAST_OPEN_KEY)
   if (stored) {
     const match = list.find((f) => f.filename === stored)
@@ -40,7 +41,8 @@ export function useTodoFiles() {
     if (!res?.ok) return
     const list: TodoFile[] = await res.json()
     setFiles(list)
-    if (list.length > 0) selectFile(resolveInitialFile(list))
+    const initial = resolveInitialFile(list)
+    if (initial) selectFile(initial)
   }, [selectFile])
 
   useEffect(() => {
@@ -53,7 +55,8 @@ export function useTodoFiles() {
       .then((list: TodoFile[] | null) => {
         if (!list) return
         setFiles(list)
-        if (list.length > 0) selectFile(resolveInitialFile(list))
+        const initial = resolveInitialFile(list)
+        if (initial) selectFile(initial)
       })
       .catch(() => {})
     return () => controller.abort()
