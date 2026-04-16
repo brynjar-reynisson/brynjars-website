@@ -14,6 +14,7 @@ export default function Todo() {
     saveFile,
     renameFile,
     loadFiles,
+    isDirty,
   } = useTodoFiles()
 
   const { isAuthenticated, isChecking, login } = useTodoAuth()
@@ -78,6 +79,13 @@ export default function Todo() {
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault()
+      saveFileRef.current(contentRef.current)
     }
   }
 
@@ -158,7 +166,9 @@ export default function Todo() {
             <div
               key={filename}
               className={`px-4 py-2 cursor-pointer text-sm ${
-                filename === selectedFilename ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
+                filename === selectedFilename
+                  ? `bg-gray-100 font-semibold${isDirty ? ' italic' : ''}`
+                  : 'hover:bg-gray-50'
               }`}
               onClick={() => handleFileClick(filename, name)}
             >
@@ -185,6 +195,7 @@ export default function Todo() {
         onChange={(e) => setContent(e.target.value)}
         onFocus={isAuthenticated ? handleFocus : undefined}
         onBlur={handleBlur}
+        onKeyDown={isAuthenticated ? handleKeyDown : undefined}
         readOnly={!isAuthenticated}
         placeholder={selectedFilename ? '' : 'Select a file to edit'}
         disabled={!selectedFilename}

@@ -22,6 +22,9 @@ export function useTodoFiles() {
   const [files, setFiles] = useState<TodoFile[]>([])
   const [selectedFilename, setSelectedFilename] = useState<string | null>(null)
   const [content, setContent] = useState('')
+  const [savedContent, setSavedContent] = useState('')
+
+  const isDirty = content !== savedContent
 
   const selectFile = useCallback(async (filename: string) => {
     localStorage.setItem(LAST_OPEN_KEY, filename)
@@ -33,6 +36,7 @@ export function useTodoFiles() {
       if (!res.ok) return
       const data: { content: string } = await res.json()
       setContent(data.content)
+      setSavedContent(data.content)
     } catch {}
   }, [])
 
@@ -74,6 +78,7 @@ export function useTodoFiles() {
       setFiles((prev) => [newFile, ...prev])
       setSelectedFilename(newFile.filename)
       setContent('')
+      setSavedContent('')
     } catch {}
   }, [])
 
@@ -86,6 +91,7 @@ export function useTodoFiles() {
           headers: { 'Content-Type': 'application/json', ...authHeader() },
           body: JSON.stringify({ content: text }),
         })
+        setSavedContent(text)
       } catch {}
     },
     [selectedFilename]
@@ -114,5 +120,5 @@ export function useTodoFiles() {
     []
   )
 
-  return { files, selectedFilename, content, setContent, selectFile, createFile, saveFile, renameFile, loadFiles }
+  return { files, selectedFilename, content, setContent, selectFile, createFile, saveFile, renameFile, loadFiles, isDirty }
 }
