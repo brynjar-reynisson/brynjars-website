@@ -11,7 +11,6 @@ type ProcessEntry = {
   pid: number
   name: string
   cpu: number
-  mem: number
   memMb: number
 }
 
@@ -42,7 +41,7 @@ function ProcessTable({ title, rows }: { title: string; rows: ProcessEntry[] }) 
               <td className="py-1 pr-4">{p.name}</td>
               <td className="py-1 pr-4">{p.pid}</td>
               <td className="py-1 pr-4">{p.cpu.toFixed(1)}</td>
-              <td className="py-1">{p.memMb}</td>
+              <td className="py-1">{p.memMb.toFixed(1)}</td>
             </tr>
           ))}
         </tbody>

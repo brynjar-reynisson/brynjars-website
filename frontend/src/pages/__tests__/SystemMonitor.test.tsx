@@ -5,6 +5,23 @@ import SystemMonitor from '../SystemMonitor'
 
 const MOCK_STATS = { cpuPercent: 42.5, memUsedMb: 8192, memTotalMb: 16384 }
 
+const MOCK_PROCESSES = [
+  { pid: 1, name: 'chrome.exe', cpu: 15.2, memMb: 512 },
+  { pid: 2, name: 'node.exe', cpu: 8.5, memMb: 350 },
+  { pid: 3, name: 'code.exe', cpu: 5.1, memMb: 420 },
+  { pid: 4, name: 'svchost.exe', cpu: 0.1, memMb: 900 },
+]
+
+function stubFetch() {
+  vi.mocked(fetch).mockImplementation((input) => {
+    const url = input as string
+    if (url === '/api/system') {
+      return Promise.resolve({ ok: true, json: async () => MOCK_STATS } as Response)
+    }
+    return Promise.resolve({ ok: true, json: async () => MOCK_PROCESSES } as Response)
+  })
+}
+
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn())
 })
@@ -15,10 +32,7 @@ afterEach(() => {
 
 describe('SystemMonitor', () => {
   it('renders the site title as a link back to home', async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: async () => MOCK_STATS,
-    } as Response)
+    stubFetch()
 
     render(
       <MemoryRouter>
@@ -42,10 +56,7 @@ describe('SystemMonitor', () => {
   })
 
   it('renders cpu percentage after fetch succeeds', async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: async () => MOCK_STATS,
-    } as Response)
+    stubFetch()
 
     render(
       <MemoryRouter>
@@ -57,10 +68,7 @@ describe('SystemMonitor', () => {
   })
 
   it('renders memory usage in GB after fetch succeeds', async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: async () => MOCK_STATS,
-    } as Response)
+    stubFetch()
 
     render(
       <MemoryRouter>
@@ -105,10 +113,7 @@ describe('SystemMonitor', () => {
 
   it('sets up polling interval of 10 seconds', async () => {
     const setIntervalSpy = vi.spyOn(global, 'setInterval')
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: async () => MOCK_STATS,
-    } as Response)
+    stubFetch()
 
     render(
       <MemoryRouter>
@@ -119,5 +124,62 @@ describe('SystemMonitor', () => {
     await waitFor(() => expect(screen.getByText(/CPU:/)).toBeInTheDocument())
     expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 10000)
     setIntervalSpy.mockRestore()
+  })
+})
+
+describe('GET /api/processes — process tables', () => {
+  it('renders Top CPU and Top Memory headings when processes are available', async () => {
+    stubFetch()
+    render(
+      <MemoryRouter>
+        <SystemMonitor />
+      </MemoryRouter>
+    )
+    await waitFor(() => expect(screen.getByText('Top CPU')).toBeInTheDocument())
+    expect(screen.getByText('Top Memory')).toBeInTheDocument()
+  })
+
+  it('renders the top CPU process name in the table', async () => {
+    stubFetch()
+    render(
+      <MemoryRouter>
+        <SystemMonitor />
+      </MemoryRouter>
+    )
+    // chrome.exe has highest CPU (15.2)
+    await waitFor(() =>
+      expect(screen.getAllByText('chrome.exe').length).toBeGreaterThan(0)
+    )
+  })
+
+  it('renders the top memory process name in the table', async () => {
+    stubFetch()
+    render(
+      <MemoryRouter>
+        <SystemMonitor />
+      </MemoryRouter>
+    )
+    // svchost.exe has highest memMb (900)
+    await waitFor(() =>
+      expect(screen.getAllByText('svchost.exe').length).toBeGreaterThan(0)
+    )
+  })
+
+  it('does not render process tables when /api/processes fetch fails', async () => {
+    vi.mocked(fetch).mockImplementation((input) => {
+      const url = input as string
+      if (url === '/api/system') {
+        return Promise.resolve({ ok: true, json: async () => MOCK_STATS } as Response)
+      }
+      return Promise.reject(new Error('Network error'))
+    })
+    render(
+      <MemoryRouter>
+        <SystemMonitor />
+      </MemoryRouter>
+    )
+    await waitFor(() => expect(screen.getByText(/CPU: 42\.5%/)).toBeInTheDocument())
+    expect(screen.queryByText('Top CPU')).not.toBeInTheDocument()
+    expect(screen.queryByText('Top Memory')).not.toBeInTheDocument()
   })
 })
