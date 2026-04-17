@@ -182,4 +182,31 @@ describe('GET /api/processes — process tables', () => {
     expect(screen.queryByText('Top CPU')).not.toBeInTheDocument()
     expect(screen.queryByText('Top Memory')).not.toBeInTheDocument()
   })
+
+  it('does not render System Idle Process or Memory Compression', async () => {
+    vi.mocked(fetch).mockImplementation((input) => {
+      const url = input as string
+      if (url === '/api/system') {
+        return Promise.resolve({ ok: true, json: async () => MOCK_STATS } as Response)
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => [
+          ...MOCK_PROCESSES,
+          { pid: 100, name: 'System Idle Process', cpu: 99.0, memMb: 0.1 },
+          { pid: 101, name: 'Memory Compression', cpu: 0.5, memMb: 800 },
+        ],
+      } as Response)
+    })
+
+    render(
+      <MemoryRouter>
+        <SystemMonitor />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByText('Top CPU')).toBeInTheDocument())
+    expect(screen.queryByText('System Idle Process')).not.toBeInTheDocument()
+    expect(screen.queryByText('Memory Compression')).not.toBeInTheDocument()
+  })
 })

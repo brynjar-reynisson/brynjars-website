@@ -14,6 +14,8 @@ type ProcessEntry = {
   memMb: number
 }
 
+const EXCLUDED_PROCESSES = new Set(['System Idle Process', 'Memory Compression'])
+
 function StatBar({ percent }: { percent: number }) {
   return (
     <div className="w-full bg-gray-200 rounded h-4">
@@ -83,8 +85,9 @@ export default function SystemMonitor() {
   }, [])
 
   const memPercent = stats ? Math.round((stats.memUsedMb / stats.memTotalMb) * 100) : 0
-  const topCpu = [...processes].sort((a, b) => b.cpu - a.cpu).slice(0, 3)
-  const topMem = [...processes].sort((a, b) => b.memMb - a.memMb).slice(0, 3)
+  const visible = processes.filter((p) => !EXCLUDED_PROCESSES.has(p.name))
+  const topCpu = [...visible].sort((a, b) => b.cpu - a.cpu).slice(0, 3)
+  const topMem = [...visible].sort((a, b) => b.memMb - a.memMb).slice(0, 3)
 
   return (
     <div className="min-h-screen bg-white px-6 py-12 max-w-2xl mx-auto">
