@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import os from 'os'
+import si from 'systeminformation'
 import { Ollama } from 'ollama'
 import { getCache, startPolling } from './lastReadCache'
 import { ensureDir, ensureDefaultFile, listFiles, readFile, createFile, saveFile, renameFile } from './todoFiles'
@@ -227,6 +228,22 @@ app.get('/api/system', async (_req, res) => {
     res.json({ cpuPercent, memUsedMb: totalMb - freeMb, memTotalMb: totalMb })
   } catch {
     res.status(500).json({ error: 'Failed to get system stats' })
+  }
+})
+
+app.get('/api/processes', async (_req, res) => {
+  try {
+    const data = await si.processes()
+    const list = data.list.map((proc) => ({
+      pid: proc.pid,
+      name: proc.name,
+      cpu: proc.cpu,
+      mem: proc.mem,
+      memMb: Math.round(proc.memRss / 1024 * 10) / 10,
+    }))
+    res.json(list)
+  } catch {
+    res.status(500).json({ error: 'Failed to get process list' })
   }
 })
 

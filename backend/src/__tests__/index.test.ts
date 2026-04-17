@@ -47,6 +47,14 @@ vi.mock('os', () => {
   }
 })
 
+vi.mock('systeminformation', () => {
+  const mockProcesses = vi.fn()
+  return {
+    default: { processes: mockProcesses },
+    __mockProcesses: mockProcesses,
+  }
+})
+
 import * as ollamaModule from 'ollama'
 import { getCache } from '../lastReadCache'
 import request from 'supertest'
@@ -54,6 +62,7 @@ import { app } from '../index'
 import * as todoFiles from '../todoFiles'
 import * as todoAuth from '../todoAuth'
 import * as osModule from 'os'
+import * as siModule from 'systeminformation'
 
 const mockChat = (ollamaModule as any).__mockChat
 const mockList = (ollamaModule as any).__mockList
@@ -61,6 +70,7 @@ const mockedGetCache = vi.mocked(getCache)
 const mockCpus = (osModule as any).__mockCpus as ReturnType<typeof vi.fn>
 const mockTotalmem = (osModule as any).__mockTotalmem as ReturnType<typeof vi.fn>
 const mockFreemem = (osModule as any).__mockFreemem as ReturnType<typeof vi.fn>
+const mockProcesses = (siModule as any).__mockProcesses as ReturnType<typeof vi.fn>
 
 const TOKEN = 'valid-token'
 function authed(req: any) {
@@ -83,6 +93,7 @@ beforeEach(() => {
   mockCpus.mockReset()
   mockTotalmem.mockReset()
   mockFreemem.mockReset()
+  mockProcesses.mockReset()
 })
 
 const MOCK_DATA = [
@@ -520,5 +531,33 @@ describe('GET /api/system', () => {
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: 'Failed to get system stats' })
+  })
+})
+
+describe('GET /api/processes', () => {
+  it('returns mapped process list', async () => {
+    mockProcesses.mockResolvedValue({
+      list: [
+        { pid: 1, name: 'System', cpu: 0.5, mem: 0.1, memRss: 10240 },
+        { pid: 42, name: 'node.exe', cpu: 3.2, mem: 1.4, memRss: 51200 },
+      ],
+    })
+
+    const res = await request(app).get('/api/processes')
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual([
+      { pid: 1, name: 'System', cpu: 0.5, mem: 0.1, memMb: 10 },
+      { pid: 42, name: 'node.exe', cpu: 3.2, mem: 1.4, memMb: 50 },
+    ])
+  })
+
+  it('returns 500 when si.processes throws', async () => {
+    mockProcesses.mockRejectedValue(new Error('access denied'))
+
+    const res = await request(app).get('/api/processes')
+
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ error: 'Failed to get process list' })
   })
 })
