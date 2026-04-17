@@ -237,6 +237,7 @@ app.get('/api/processes', async (_req, res) => {
     const list = data.list.map((proc) => ({
       pid: proc.pid,
       name: proc.name,
+      command: proc.command,
       cpu: proc.cpu,
       mem: proc.mem,
       memMb: Math.round(proc.memRss / 1024 * 10) / 10,

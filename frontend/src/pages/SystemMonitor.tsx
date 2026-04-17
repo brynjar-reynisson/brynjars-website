@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 type SystemStats = {
@@ -10,11 +10,41 @@ type SystemStats = {
 type ProcessEntry = {
   pid: number
   name: string
+  command: string
   cpu: number
   memMb: number
 }
 
 const EXCLUDED_PROCESSES = new Set(['System Idle Process', 'Memory Compression'])
+
+// Add process names here to collapse all instances into one aggregated row
+const AGGREGATED_PROCESSES = new Set(['msedge.exe', 'ollama.exe', 'Code.exe'])
+
+type DisplayEntry = ProcessEntry & { count?: number; aggregateCommand?: string }
+
+function aggregateProcesses(processes: ProcessEntry[]): DisplayEntry[] {
+  const groups = new Map<string, DisplayEntry>()
+  const result: DisplayEntry[] = []
+
+  for (const p of processes) {
+    if (AGGREGATED_PROCESSES.has(p.name)) {
+      const existing = groups.get(p.name)
+      if (existing) {
+        existing.cpu += p.cpu
+        existing.memMb += p.memMb
+        existing.count = (existing.count ?? 1) + 1
+      } else {
+        const entry: DisplayEntry = { ...p, count: 1, aggregateCommand: p.command }
+        groups.set(p.name, entry)
+        result.push(entry)
+      }
+    } else {
+      result.push(p)
+    }
+  }
+
+  return result
+}
 
 function StatBar({ percent }: { percent: number }) {
   return (
@@ -24,11 +54,41 @@ function StatBar({ percent }: { percent: number }) {
   )
 }
 
-function ProcessTable({ title, rows }: { title: string; rows: ProcessEntry[] }) {
+function truncateName(name: string): string {
+  return name.length > 20 ? name.slice(0, 17) + '...' : name
+}
+
+function Tooltip({ text, italic, children }: { text: string; italic?: boolean; children: React.ReactNode }) {
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  return (
+    <span
+      onMouseMove={(e) => setPos({ x: e.clientX, y: e.clientY })}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && text && (
+        <span
+          className="fixed z-50 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap pointer-events-none"
+          style={{ left: pos.x + 12, top: pos.y + 12 }}
+        >
+          {italic ? <em>{text}</em> : text}
+        </span>
+      )}
+    </span>
+  )
+}
+
+function ProcessTable({ title, rows }: { title: string; rows: DisplayEntry[] }) {
   return (
     <div>
       <p className="text-gray-700 mb-2 font-medium">{title}</p>
-      <table className="w-full text-sm text-left text-gray-700">
+      <table className="text-sm text-left text-gray-700 table-fixed w-full">
+        <colgroup>
+          <col style={{ width: '22ch' }} />
+          <col style={{ width: '6ch' }} />
+          <col style={{ width: '6ch' }} />
+          <col style={{ width: '8ch' }} />
+        </colgroup>
         <thead>
           <tr className="border-b border-gray-200">
             <th className="pb-1 pr-4 font-medium">Name</th>
@@ -39,9 +99,16 @@ function ProcessTable({ title, rows }: { title: string; rows: ProcessEntry[] }) 
         </thead>
         <tbody>
           {rows.map((p) => (
-            <tr key={p.pid} className="border-b border-gray-100">
-              <td className="py-1 pr-4">{p.name}</td>
-              <td className="py-1 pr-4">{p.pid}</td>
+            <tr key={p.count != null ? p.name : p.pid} className="border-b border-gray-100">
+              <td className="py-1 pr-4">
+                <Tooltip
+                  text={p.count != null ? (p.aggregateCommand ?? '') : (p.command !== p.name ? p.command : '')}
+                  italic={p.count != null}
+                >
+                  {truncateName(p.name)}{p.count != null ? ` (${p.count})` : ''}
+                </Tooltip>
+              </td>
+              <td className="py-1 pr-4">{p.count != null ? '—' : p.pid}</td>
               <td className="py-1 pr-4">{p.cpu.toFixed(1)}</td>
               <td className="py-1">{p.memMb.toFixed(1)}</td>
             </tr>
@@ -85,9 +152,9 @@ export default function SystemMonitor() {
   }, [])
 
   const memPercent = stats ? Math.round((stats.memUsedMb / stats.memTotalMb) * 100) : 0
-  const visible = processes.filter((p) => !EXCLUDED_PROCESSES.has(p.name))
-  const topCpu = [...visible].sort((a, b) => b.cpu - a.cpu).slice(0, 3)
-  const topMem = [...visible].sort((a, b) => b.memMb - a.memMb).slice(0, 3)
+  const visible = aggregateProcesses(processes.filter((p) => !EXCLUDED_PROCESSES.has(p.name)))
+  const topCpu = [...visible].sort((a, b) => b.cpu - a.cpu).slice(0, 10)
+  const topMem = [...visible].sort((a, b) => b.memMb - a.memMb).slice(0, 10)
 
   return (
     <div className="min-h-screen bg-white px-6 py-12 max-w-2xl mx-auto">
