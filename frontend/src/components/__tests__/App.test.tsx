@@ -23,9 +23,16 @@ describe('App', () => {
     expect(screen.getByText('About Me')).toBeInTheDocument()
   })
 
-  it('renders the Ollama Chat card', () => {
+  it("renders the Brynjar's Chatbot card", () => {
     render(<MemoryRouter><App /></MemoryRouter>)
-    expect(screen.getByText('Ollama Chat')).toBeInTheDocument()
+    const link = screen.getByText("Brynjar's Chatbot").closest('a')
+    expect(link).toHaveAttribute('href', 'https://agent.breynisson.org/')
+  })
+
+  it("renders the Rubik's Cube card", () => {
+    render(<MemoryRouter><App /></MemoryRouter>)
+    const link = screen.getByText("Rubik's Cube").closest('a')
+    expect(link).toHaveAttribute('href', 'https://rubiks.breynisson.org/')
   })
 
   it('renders the TODO card', () => {

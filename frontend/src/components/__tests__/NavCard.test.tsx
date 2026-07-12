@@ -17,4 +17,11 @@ describe('NavCard', () => {
     render(<MemoryRouter><NavCard icon="🎛" title="VST Plugins" to="/vst" /></MemoryRouter>)
     expect(screen.getByRole('link')).toHaveAttribute('href', '/vst')
   })
+
+  it('renders an image icon when given a path instead of an emoji', () => {
+    const { container } = render(
+      <MemoryRouter><NavCard icon="/rubiks-cube.svg" title="Rubik's Cube" to="#" /></MemoryRouter>
+    )
+    expect(container.querySelector('img')).toHaveAttribute('src', '/rubiks-cube.svg')
+  })
 })

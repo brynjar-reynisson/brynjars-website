@@ -18,7 +18,7 @@ Personal website for Brynjar.
 | Path | Component | Description |
 |------|-----------|-------------|
 | `/` | `HomePage` | Nav cards linking to all sections |
-| `/ollama-chat` | `OllamaChat` | Ollama chat UI |
+| `/ollama-chat` | `OllamaChat` | Ollama chat UI (no longer linked from the home page; see below) |
 | `/last-read` | `LastRead` | School reading tracker |
 | `/vst-plugins` | `VstPlugins` | Plugin gallery (card grid) |
 | `/vst-plugins/grand-staff` | `GrandStaff` | Grand Staff MIDI Visualizer detail page |
@@ -27,7 +27,9 @@ Personal website for Brynjar.
 | `/system-monitor` | `SystemMonitor` | Live CPU and memory usage, polled from backend every 10s |
 | `/about` | `About` | Personal bio, work history, education, links |
 
-The home page also has a nav card linking externally to `https://digitalme.breynisson.org/` (DigitalMe).
+The home page also has nav cards linking externally to `https://digitalme.breynisson.org/` (DigitalMe), `https://rubiks.breynisson.org/` (Rubik's Cube, positioned between DigitalMe and Last Read; icon is `frontend/public/rubiks-cube.svg`), and `https://agent.breynisson.org/` (Brynjar's Chatbot). Brynjar's Chatbot replaced the home page link to the in-app Ollama chat (`/ollama-chat`), which is now redundant but still reachable directly.
+
+`NavCard` accepts either an emoji string or an image path (starting with `/`) for its `icon` prop — image paths render as an `<img>` instead of emoji text.
 
 ## Features
 

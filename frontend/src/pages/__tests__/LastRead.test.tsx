@@ -44,7 +44,20 @@ describe('LastRead', () => {
     expect(heading.closest('a')).toHaveAttribute('href', '/')
   })
 
-  it('shows loading state before fetch resolves', () => {
+  it('renders the static reading cards while polling is disabled', () => {
+    render(
+      <MemoryRouter>
+        <LastRead />
+      </MemoryRouter>
+    )
+    expect(screen.getByText('Viktor Daði')).toBeInTheDocument()
+    expect(screen.getByText('Alexander Leó')).toBeInTheDocument()
+  })
+
+  // The tests below cover the fetch/polling behavior in LastRead.tsx, which
+  // is temporarily commented out while school is out. Re-enable these once
+  // the fetch logic is restored.
+  it.skip('shows loading state before fetch resolves', () => {
     vi.mocked(fetch).mockReturnValue(new Promise(() => {}))
     render(
       <MemoryRouter>
@@ -54,7 +67,7 @@ describe('LastRead', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument()
   })
 
-  it('renders a card for each entry after fetch succeeds', async () => {
+  it.skip('renders a card for each entry after fetch succeeds', async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       status: 200,
@@ -70,7 +83,7 @@ describe('LastRead', () => {
     expect(screen.getByText('Alexander')).toBeInTheDocument()
   })
 
-  it('shows error message when fetch fails', async () => {
+  it.skip('shows error message when fetch fails', async () => {
     vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
     render(
@@ -83,7 +96,7 @@ describe('LastRead', () => {
     )
   })
 
-  it('shows pending message when server responds 503 with pending: true', async () => {
+  it.skip('shows pending message when server responds 503 with pending: true', async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: false,
       status: 503,
@@ -97,12 +110,12 @@ describe('LastRead', () => {
     )
     await waitFor(() =>
       expect(
-        screen.getByText('Loading, this may take a while\u2026')
+        screen.getByText('Loading, this may take a while…')
       ).toBeInTheDocument()
     )
   })
 
-  it('schedules a retry 3 seconds after a pending response', async () => {
+  it.skip('schedules a retry 3 seconds after a pending response', async () => {
     const setTimeoutSpy = vi.spyOn(global, 'setTimeout')
 
     vi.mocked(fetch).mockResolvedValue({
@@ -119,7 +132,7 @@ describe('LastRead', () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText('Loading, this may take a while\u2026')
+        screen.getByText('Loading, this may take a while…')
       ).toBeInTheDocument()
     )
 
@@ -127,7 +140,7 @@ describe('LastRead', () => {
     setTimeoutSpy.mockRestore()
   })
 
-  it('shows error message when server responds with non-503 error', async () => {
+  it.skip('shows error message when server responds with non-503 error', async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: false,
       status: 500,

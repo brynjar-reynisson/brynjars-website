@@ -10,9 +10,10 @@ import Todo from './pages/Todo'
 import SystemMonitor from './pages/SystemMonitor'
 
 const NAV_ITEMS = [
-  { icon: '🤖', title: 'Ollama Chat', to: '/ollama-chat' },
+  { icon: '🤖', title: "Brynjar's Chatbot", to: 'https://agent.breynisson.org/' },
   { icon: '🎛', title: 'VST Plugins', to: '/vst-plugins' },
   { icon: '🔍', title: 'DigitalMe', to: 'https://digitalme.breynisson.org/' },
+  { icon: '/rubiks-cube.svg', title: "Rubik's Cube", to: 'https://rubiks.breynisson.org/' },
   { icon: '📚', title: 'Last Read', to: '/last-read' },
   { icon: '📋', title: 'TODO', to: '/todo' },
   { icon: '🖥️', title: 'System Monitor', to: '/system-monitor' },
