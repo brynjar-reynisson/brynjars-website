@@ -3,7 +3,7 @@ import cors from 'cors'
 import os from 'os'
 import si from 'systeminformation'
 import { Ollama } from 'ollama'
-import { getCache, startPolling } from './lastReadCache'
+import { getCache } from './lastReadCache'
 import { ensureDir, ensureDefaultFile, listFiles, readFile, createFile, saveFile, renameFile } from './todoFiles'
 import { verifyPassword, generateToken, loadToken, saveToken } from './todoAuth'
 
@@ -254,7 +254,10 @@ if (process.env.NODE_ENV !== 'test') {
   ;(async () => {
     await ensureDir()
     await ensureDefaultFile()
-    startPolling(10 * 60 * 1000)
+    // School is out for the summer, so backend polling of the last-read
+    // Google Sheets (which also triggers Google OAuth re-auth prompts) is
+    // temporarily disabled. Re-enable startPolling() once school resumes.
+    // startPolling(10 * 60 * 1000)
     app.listen(PORT, () => {
       console.log(`Backend running on port ${PORT}`)
     })
