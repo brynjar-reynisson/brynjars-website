@@ -6,7 +6,6 @@ Personal website for Brynjar.
 
 - **Frontend:** React + TypeScript
 - **Backend:** Node.js + TypeScript
-- **Other:** Python script for school reading tracker
 
 ## Project Structure
 
@@ -19,7 +18,6 @@ Personal website for Brynjar.
 |------|-----------|-------------|
 | `/` | `HomePage` | Nav cards linking to all sections |
 | `/ollama-chat` | `OllamaChat` | Ollama chat UI (no longer linked from the home page; see below) |
-| `/last-read` | `LastRead` | School reading tracker |
 | `/vst-plugins` | `VstPlugins` | Plugin gallery (card grid) |
 | `/vst-plugins/grand-staff` | `GrandStaff` | Grand Staff MIDI Visualizer detail page |
 | `/vst-plugins/circle-of-fifths` | `CircleOfFifths` | Interactive Circle of Fifths detail page |
@@ -27,7 +25,7 @@ Personal website for Brynjar.
 | `/system-monitor` | `SystemMonitor` | Live CPU and memory usage, polled from backend every 10s |
 | `/about` | `About` | Personal bio, work history, education, links |
 
-The home page also has nav cards linking externally to `https://digitalme.breynisson.org/` (DigitalMe), `https://rubiks.breynisson.org/` (Rubik's Cube, positioned between DigitalMe and Last Read; icon is `frontend/public/rubiks-cube.svg`), and `https://agent.breynisson.org/` (Brynjar's Chatbot). Brynjar's Chatbot replaced the home page link to the in-app Ollama chat (`/ollama-chat`), which is now redundant but still reachable directly.
+The home page also has nav cards linking externally to `https://digitalme.breynisson.org/` (DigitalMe), `https://rubiks.breynisson.org/` (Rubik's Cube, positioned between DigitalMe and TODO; icon is `frontend/public/rubiks-cube.svg`), and `https://agent.breynisson.org/` (Brynjar's Chatbot). Brynjar's Chatbot replaced the home page link to the in-app Ollama chat (`/ollama-chat`), which is now redundant but still reachable directly.
 
 `NavCard` accepts either an emoji string or an image path (starting with `/`) for its `icon` prop — image paths render as an `<img>` instead of emoji text.
 
@@ -36,7 +34,6 @@ The home page also has nav cards linking externally to `https://digitalme.breyni
 - **VST Plugins:** `/vst-plugins` shows a card grid of two plugins. Each card links to a detail page with screenshots, feature list, download link, and credits.
   - **Grand Staff MIDI Visualizer** (`/vst-plugins/grand-staff`): Visualizes MIDI notes on a grand staff with chord name display, key signature selection, 1000+ chord patterns, themes, and DAW automation support. Free, Windows 64-bit, open source on GitHub.
   - **Interactive Circle of Fifths** (`/vst-plugins/circle-of-fifths`): Visual music theory tool showing modes and chord info. Works as standalone app and VST (no audio/MIDI processing). Free, Windows 64-bit, open source on GitHub.
-- **School reading tracker:** `/last-read` page fetches from `GET /api/last-read` on the backend (port 3001), which spawns `python last_read.py --json` in the directory set by `LAST_READ_DIR` env var (default: `C:\Users\Lenovo\misc_projects\last-read`). Displays one card per boy with name, pages, and weekday.
 - **Ollama chat:** `/ollama-chat` page streams responses from a local Ollama instance via `POST /api/chat`. A gear button (⚙) in the header opens a settings panel where the user can select the model. Available models are fetched from `GET /api/models` (calls `ollama.list()`). The selected model is persisted in an `ollama_model` cookie; when absent or invalid the backend default (`OLLAMA_MODEL` env var, default `llama3.2`) is used.
 - **About page:** `/about` shows a personal bio, work history timeline (1999–present), education, and contact/social links.
 - **System Monitor:** `/system-monitor` page fetches from `GET /api/system` on the backend (port 3001), which samples CPU utilisation using two `os.cpus()` snapshots 100ms apart and reads `os.freemem()`/`os.totalmem()`. Returns `{ cpuPercent, memUsedMb, memTotalMb }`. The frontend polls every 10 seconds and renders two labelled progress bars (CPU %, memory used/total GB). A companion endpoint `GET /api/processes` returns all running processes as `[{ pid, name, command, cpu, memMb }]` where `memMb` is RSS memory in MB (one decimal place). The frontend polls this endpoint on the same 10-second interval and renders two tables below the progress bars: **Top CPU** and **Top Memory**, each showing the top 10 processes by that metric with fixed-width columns (name, PID, CPU%, Mem MB). Process names longer than 20 characters are truncated to 17 chars + `...`. Hovering a name shows the `command` value as a tooltip (only when it differs from the name). Certain processes (`msedge.exe`, `ollama.exe`, `Code.exe`) are aggregated into a single row with summed CPU/memory and instance count in parentheses; their tooltip shows the command of the first instance in italics. `System Idle Process` and `Memory Compression` are excluded from both tables.

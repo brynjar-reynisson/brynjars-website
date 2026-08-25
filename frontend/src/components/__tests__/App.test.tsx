@@ -13,11 +13,6 @@ describe('App', () => {
     expect(screen.getByText('VST Plugins')).toBeInTheDocument()
   })
 
-  it('renders the Last Read card', () => {
-    render(<MemoryRouter><App /></MemoryRouter>)
-    expect(screen.getByText('Last Read')).toBeInTheDocument()
-  })
-
   it('renders the About Me card', () => {
     render(<MemoryRouter><App /></MemoryRouter>)
     expect(screen.getByText('About Me')).toBeInTheDocument()

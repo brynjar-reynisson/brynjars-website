@@ -3,7 +3,6 @@ import cors from 'cors'
 import os from 'os'
 import si from 'systeminformation'
 import { Ollama } from 'ollama'
-import { getCache, startPolling } from './lastReadCache'
 import { ensureDir, ensureDefaultFile, listFiles, readFile, createFile, saveFile, renameFile } from './todoFiles'
 import { verifyPassword, generateToken, loadToken, saveToken } from './todoAuth'
 
@@ -18,15 +17,6 @@ app.use(cors({ origin: ALLOWED_ORIGINS }))
 app.use(express.json())
 
 const ollama = new Ollama({ host: process.env.OLLAMA_HOST ?? 'http://localhost:11434' })
-
-app.get('/api/last-read', (_req, res) => {
-  const data = getCache()
-  if (data === null) {
-    res.status(503).json({ pending: true })
-    return
-  }
-  res.json(data)
-})
 
 app.get('/api/models', async (_req, res) => {
   try {
@@ -254,7 +244,6 @@ if (process.env.NODE_ENV !== 'test') {
   ;(async () => {
     await ensureDir()
     await ensureDefaultFile()
-    startPolling(10 * 60 * 1000)
     app.listen(PORT, () => {
       console.log(`Backend running on port ${PORT}`)
     })

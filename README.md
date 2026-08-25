@@ -6,7 +6,6 @@ Brynjar's Online Antics — personal website, live at [breynisson.org](https://b
 
 - **VST Plugins** — pages for Grand Staff MIDI Visualizer and Interactive Circle of Fifths, with descriptions, screenshots, and download links
 - **DigitalMe** — personal search engine at [digitalme.breynisson.org](https://digitalme.breynisson.org/)
-- **Last Read** — shows what each boy last read for school, pulled from a Python script
 - **About Me** — bio, work experience, education, and links
 
 ## Stack
@@ -21,7 +20,6 @@ Brynjar's Online Antics — personal website, live at [breynisson.org](https://b
 ### Prerequisites
 
 - Node.js
-- Python (with `last_read.py` in `C:\Users\Lenovo\misc_projects\last-read`)
 
 ### Frontend
 
@@ -41,13 +39,12 @@ npm install
 npm run dev
 ```
 
-Runs at http://localhost:3001. The frontend proxies `/api/*` to the backend, so both must be running for Last Read to work.
+Runs at http://localhost:3001. The frontend proxies `/api/*` to the backend, so both must be running.
 
 ### Environment variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `LAST_READ_DIR` | `C:\Users\Lenovo\misc_projects\last-read` | Directory containing `last_read.py` |
 | `PORT` | `3001` | Backend port |
 
 ### Tests
