@@ -1,6 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
 import NavCard from './components/NavCard'
-import LastRead from './pages/LastRead'
 import VstPlugins from './pages/VstPlugins'
 import GrandStaff from './pages/GrandStaff'
 import CircleOfFifths from './pages/CircleOfFifths'
@@ -14,7 +13,6 @@ const NAV_ITEMS = [
   { icon: '🎛', title: 'VST Plugins', to: '/vst-plugins' },
   { icon: '🔍', title: 'DigitalMe', to: 'https://digitalme.breynisson.org/' },
   { icon: '/rubiks-cube.svg', title: "Rubik's Cube", to: 'https://rubiks.breynisson.org/' },
-  { icon: '📚', title: 'Last Read', to: '/last-read' },
   { icon: '📋', title: 'TODO', to: '/todo' },
   { icon: '🖥️', title: 'System Monitor', to: '/system-monitor' },
   { icon: '👤', title: 'About Me', to: '/about' },
@@ -38,7 +36,6 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/ollama-chat" element={<OllamaChat />} />
-      <Route path="/last-read" element={<LastRead />} />
       <Route path="/vst-plugins" element={<VstPlugins />} />
       <Route path="/vst-plugins/grand-staff" element={<GrandStaff />} />
       <Route path="/vst-plugins/circle-of-fifths" element={<CircleOfFifths />} />

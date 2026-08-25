@@ -23,11 +23,6 @@ vi.mock('ollama', () => {
   }
 })
 
-vi.mock('../lastReadCache', () => ({
-  getCache: vi.fn(),
-  startPolling: vi.fn(),
-}))
-
 vi.mock('../todoAuth', () => ({
   verifyPassword: vi.fn(),
   generateToken: vi.fn(),
@@ -56,7 +51,6 @@ vi.mock('systeminformation', () => {
 })
 
 import * as ollamaModule from 'ollama'
-import { getCache } from '../lastReadCache'
 import request from 'supertest'
 import { app } from '../index'
 import * as todoFiles from '../todoFiles'
@@ -66,7 +60,6 @@ import * as siModule from 'systeminformation'
 
 const mockChat = (ollamaModule as any).__mockChat
 const mockList = (ollamaModule as any).__mockList
-const mockedGetCache = vi.mocked(getCache)
 const mockCpus = (osModule as any).__mockCpus as ReturnType<typeof vi.fn>
 const mockTotalmem = (osModule as any).__mockTotalmem as ReturnType<typeof vi.fn>
 const mockFreemem = (osModule as any).__mockFreemem as ReturnType<typeof vi.fn>
@@ -80,7 +73,6 @@ function authed(req: any) {
 beforeEach(() => {
   mockChat.mockReset()
   mockList.mockReset()
-  mockedGetCache.mockReset()
   vi.mocked(todoFiles.listFiles).mockReset()
   vi.mocked(todoFiles.readFile).mockReset()
   vi.mocked(todoFiles.createFile).mockReset()
@@ -94,31 +86,6 @@ beforeEach(() => {
   mockTotalmem.mockReset()
   mockFreemem.mockReset()
   mockProcesses.mockReset()
-})
-
-const MOCK_DATA = [
-  {
-    name: 'Viktor',
-    pages: '23-24',
-    weekday_english: 'Thursday',
-    weekday_icelandic: 'Fimmtudagur',
-  },
-]
-
-describe('GET /api/last-read', () => {
-  it('returns 503 with pending: true when cache is null', async () => {
-    mockedGetCache.mockReturnValue(null)
-    const res = await request(app).get('/api/last-read')
-    expect(res.status).toBe(503)
-    expect(res.body).toEqual({ pending: true })
-  })
-
-  it('returns cached data when cache is populated', async () => {
-    mockedGetCache.mockReturnValue(MOCK_DATA)
-    const res = await request(app).get('/api/last-read')
-    expect(res.status).toBe(200)
-    expect(res.body).toEqual(MOCK_DATA)
-  })
 })
 
 function stubChatResponse() {
